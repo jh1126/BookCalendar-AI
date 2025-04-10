@@ -25,8 +25,19 @@ import pandas as pd
 # BERT 모델, Vocabulary 불러오기
 bertmodel, vocab = get_pytorch_kobert_model(cachedir=".cache")
 
-# [AI Hub] 감정 분류를 위한 감정 라벨링 대화 데이터셋
+# [AI Hub] 감정 분류를 위한 감정 라벨링 대화 데이터셋 불러오기
 data = pd.read_csv(".csv", encoding='cp949')
 
+#7개의 감정 class
 data['상황'].unique()
 >>> array(['happiness', 'neutral', 'sadness', 'angry', 'surprise', 'disgust','fear'], dtype=object)
+
+#7개의 감정을 숫자로 표현
+# 7개의 감정 class → 숫자
+data.loc[(data['상황'] == "fear"), '상황'] = 0  # 두려움 → 0
+data.loc[(data['상황'] == "surprise"), '상황'] = 1  # 놀람 → 1
+data.loc[(data['상황'] == "angry"), '상황'] = 2  # 분노 → 2
+data.loc[(data['상황'] == "sadness"), '상황'] = 3  # 슬픔 → 3
+data.loc[(data['상황'] == "neutral"), '상황'] = 4  # 중간 → 4
+data.loc[(data['상황'] == "happiness"), '상황'] = 5  # 행복 → 5
+data.loc[(data['상황'] == "disgust"), '상황'] = 6  # 혐오 → 6
