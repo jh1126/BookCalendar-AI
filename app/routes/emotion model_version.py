@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from app.services.model_loader import load_model
-from app.models import current_model
+from app.services.emotion model_loader import load_emotion_model
+from app.models import emotion model
 
 router = APIRouter()
 
