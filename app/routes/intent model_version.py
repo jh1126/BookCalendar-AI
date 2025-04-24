@@ -6,7 +6,7 @@ router = APIRouter()
 
 @router.post("/set_version/{version}")
 def set_model_version(version: str):
-    model, tokenizer = load_model(version)
+    model, tokenizer = load_intent_model(version)
     intent model.current_model = model
     intent model.current_tokenizer = tokenizer
     intent model.current_version = version
