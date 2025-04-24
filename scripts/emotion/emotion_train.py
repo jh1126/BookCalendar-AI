@@ -12,7 +12,8 @@ import numpy as np
 import pandas as pd
 
 # 훈련에 필요한 데이터셋(다중 감정 분류를 위한 데이터셋) 불러오기
-data_path1 = "/home/"
+import os
+data_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'emotion', 'processed', 'emotion_all_data.xlxs')
 train_df = pd.read_excel(data_path)
 
 # Label Encoding
