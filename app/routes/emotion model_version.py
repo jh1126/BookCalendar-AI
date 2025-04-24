@@ -6,7 +6,7 @@ router = APIRouter()
 
 @router.post("/set_version/{version}")
 def set_model_version(version: str):
-    model, tokenizer = load_model(version)
+    model, tokenizer = load_emotion_model(version)
     emotion model.current_model = model
     emotion model.current_tokenizer = tokenizer
     emotion model.current_version = version
