@@ -44,13 +44,17 @@ train_texts, val_texts, train_labels, val_labels = train_test_split(
 from transformers import AutoTokenizer
 
 # Hugging Face 로그인
-def load_hf_token(path="secret/hf_token.txt"):
+import os
+token_path = os.path.join(os.path.dirname(__file__), '..', '..', 'secret', 'hf_token.txt')
+token_path = os.path.abspath(token_path)
+
+def load_hf_token(path):
     with open(path, "r") as file:
         token = file.read().strip()
     return token
 
 from huggingface_hub import login
-login(token=load_hf_token())
+login(token=load_hf_token(token_path))
 
 # 모델 불러오기
 model_name = "klue/bert-base"
