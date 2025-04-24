@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from app.services.model_loader import load_model
-from app.models import current_model
+from app.services.intent model_loader import load_intent_model
+from app.models import intent model
 
 router = APIRouter()
 
