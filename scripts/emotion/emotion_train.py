@@ -170,3 +170,9 @@ for i in range(0, len(texts), batch_size):
 
     pred_labels.extend(preds)
 
+# 모델 저장 경로
+model_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models','emotion','emotion_model_v1') # 버전 변경 v1,v2,v3 등등
+
+# 모델 버전
+model.save_pretrained(model_dir)     
+tokenizer.save_pretrained(model_dir)
