@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 # FastAPI 인스턴스 생성
 app = FastAPI()
 
-# 요청 데이터 형식 정의 (Pydantic 모델)
+# 요청 데이터 형식 정의
 class TextInput(BaseModel):
     text: str
 
@@ -20,7 +20,7 @@ tokenizer = BertTokenizer.from_pretrained('') #모델 경로
 # 클래스 디코딩
 
 label_encoder = LabelEncoder()
-label_encoder.classes_ = np.array(['기쁨','당황','분노','불안','슬픔'])  # 실제 학습에 사용한 순서대로!
+label_encoder.classes_ = np.array(['기쁨','당황','분노','불안','슬픔'])  # 실제 학습에 사용한 순서대로
 
 
 # 예측 함수
