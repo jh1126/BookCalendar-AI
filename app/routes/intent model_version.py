@@ -5,7 +5,7 @@ from app.models import intent model
 # 모델 버전 선택 라우터
 router = APIRouter()
 
-@router.post("/set_version/{version}")
+# @router.post("/set_version/{version}")
 def set_model_version(version: str):
     model, tokenizer = load_intent_model(version)
     intent model.current_model = model
