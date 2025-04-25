@@ -13,7 +13,7 @@ import pandas as pd
 
 # 훈련에 필요한 데이터셋(질문 의도 분류를 위한 데이터셋) 불러오기
 import os
-data_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'intent', 'processed', 'intent_all_data.xlxs')
+data_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'intent', 'processed', 'intent_all_data.xlsx')
 train_df = pd.read_excel(data_path)
 
 # Label Encoding
