@@ -5,8 +5,7 @@ import tensorflow as tf
 from transformers import TFBertForSequenceClassification, BertTokenizer
 from sklearn.preprocessing import LabelEncoder
 
-# FastAPI 인스턴스 생성
-app = FastAPI()
+router = APIRouter()
 
 # 요청 데이터 형식 정의
 class TextInput(BaseModel):
@@ -34,7 +33,7 @@ def predict_emotion(text: str):
     return decoded_label, probs[0].tolist()
 
 # POST API 엔드포인트
-@app.post("/predict_emotion")
+@router.post("/predict_emotion")
 async def predict(input_data: TextInput):
     text = input_data.text
     emotion, prob = predict_emotion(text)
