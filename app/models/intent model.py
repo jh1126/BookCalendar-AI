@@ -1,4 +1,4 @@
 # 현재 서비스에 사용 중인 모델 및 토크나이저를 저장
 current_model = None
 current_tokenizer = None
-current_version = "intent_model_v1"
+current_version = None
