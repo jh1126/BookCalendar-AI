@@ -26,7 +26,7 @@ train_df['encoded_label'] = np.asarray(label_encoder.transform(train_df['감정_
 
 # 텍스트와 감정 라벨을 따로 분리
 train_texts = train_df["사람문장1"].to_list() # Features (not-tokenized yet)
-train_labels = train_df["감정_대분류"].to_list() # 감정 라벨(0,1,2,3,4)
+train_labels = train_df["encoded_label"].to_list() # 감정 라벨(0,1,2,3,4)
 
 # 훈련데이터(70%)와 검증데이터(15%)와 테스트데이터(15%)으로 분리
 from sklearn.model_selection import train_test_split
