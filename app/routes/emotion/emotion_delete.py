@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 router = APIRouter()
 
-@router.delete("/delete_model/{version}")
+@router.delete("/delete_emtion/{version}")
 def delete_emotion_model(version: str):
     """지정한 버전의 감정 모델 디렉토리 삭제"""
     
