@@ -11,7 +11,6 @@ router = APIRouter()
 class TextInput(BaseModel):
     text: str
 
-
 # 파인튜닝된 모델과 토크나이저 로드
 model = TFBertForSequenceClassification.from_pretrained('') #모델 경로
 tokenizer = BertTokenizer.from_pretrained('') #모델 경로
@@ -34,7 +33,7 @@ def predict_emotion(text: str):
 
 # POST API 엔드포인트
 @router.post("/predict_emotion")
-async def predict(input_data: TextInput):
+def predict(input_data: TextInput):
     text = input_data.text
     emotion, prob = predict_emotion(text)
 
