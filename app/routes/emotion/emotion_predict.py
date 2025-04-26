@@ -5,6 +5,8 @@ import tensorflow as tf
 from transformers import TFBertForSequenceClassification, BertTokenizer
 from sklearn.preprocessing import LabelEncoder
 
+from app.models import emotion_model
+
 router = APIRouter()
 
 # 요청 데이터 형식 정의
@@ -12,8 +14,8 @@ class TextInput(BaseModel):
     text: str
 
 # 파인튜닝된 모델과 토크나이저 로드
-model = TFBertForSequenceClassification.from_pretrained('') #모델 경로
-tokenizer = BertTokenizer.from_pretrained('') #모델 경로
+model = emotion_model.current_model # 현재 서비스에 사용되는 모델 경로
+tokenizer = emotion_model.current_tokenizer # 현재 서비스에 사용되는 토크나이저 경로
 
 # 클래스 디코딩
 
