@@ -1,1 +1,145 @@
+# 필요한 라이브러리 Import
+from transformers import (
+    TFAutoModelForSequenceClassification,
+    AutoTokenizer,
+    AutoConfig,
+    create_optimizer,
+)
+import os
+from transformers import DataCollatorWithPadding
+from datasets import Dataset
+import tensorflow as tf
+import numpy as np
+import pandas as pd
 
+from fastapi import APIRouter
+
+router = APIRouter()
+
+def load_hf_token(path):
+    with open(path, "r") as file:
+        token = file.read().strip()
+    return token
+
+def train_emotion_model():
+    # 훈련에 필요한 데이터셋(질문 의도 분류를 위한 데이터셋) 불러오기
+    data_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'intent', 'processed', 'intent_all_data.csv')
+    train_df = pd.read_csv(data_path)
+
+    # 2. 레이블 인코딩
+    from sklearn.preprocessing import LabelEncoder
+    label_encoder = LabelEncoder()
+    label_encoder.fit(train_df['intent'])
+    num_labels = len(label_encoder.classes_)
+    train_df['encoded_label'] = np.asarray(label_encoder.transform(train_df['intent']), dtype=np.int32)
+
+    # 3. 텍스트와 감정 라벨 분리
+    train_texts = train_df["text"].to_list() # Features (not-tokenized yet)
+    train_labels = train_df["encoded_label"].to_list() # 감정 라벨(0,1,2,3,4)
+
+    # 4. 훈련데이터(70%)와 검증데이터(15%)와 테스트데이터(15%)으로 분리
+    from sklearn.model_selection import train_test_split
+    train_texts, test_texts, train_labels, test_labels = train_test_split(
+        train_texts, train_labels, test_size=0.15, random_state=42, stratify=train_labels
+    )
+
+    train_texts, val_texts, train_labels, val_labels = train_test_split(
+        train_texts, train_labels, test_size=0.1765, random_state=42, stratify=train_labels
+    )
+
+    # 5. 모델 준비 (Hugging Face)
+    from transformers import AutoTokenizer
+    model_name = "klue/bert-base"
+    token_path = os.path.join(os.path.dirname(__file__), '..', '..', 'secret', 'hf_token.txt')
+    token_path = os.path.abspath(token_path)
+    
+    from huggingface_hub import login
+    login(token=load_hf_token(token_path))
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    
+    # 6. 토크나이징
+    from transformers import BertTokenizerFast
+    train_encodings = tokenizer(train_texts, truncation=True, padding=True)
+    val_encodings = tokenizer(val_texts, truncation=True, padding=True)
+
+    # 7. TensorFlow 데이터셋 준비
+    import tensorflow as tf
+    train_dataset = tf.data.Dataset.from_tensor_slices((dict(train_encodings), train_labels))
+    val_dataset = tf.data.Dataset.from_tensor_slices((dict(val_encodings), val_labels))
+    
+    # 8. 모델 설정
+    from tensorflow.keras.metrics import Metric
+    config = AutoConfig.from_pretrained(
+        model_name,
+        num_labels=num_labels,
+        hidden_dropout_prob=0.2,
+        attention_probs_dropout_prob=0.2
+    )
+
+    model = TFAutoModelForSequenceClassification.from_pretrained(model_name, config=config)
+
+    optimizer, schedule = create_optimizer(
+        init_lr=2e-5,
+        num_train_steps=(len(train_labels) // 16) * 5,  # num_train_steps 계산
+        num_warmup_steps=0
+    )
+
+    # 9. 모델 컴파일
+    model.compile(optimizer=optimizer, loss=model.hf_compute_loss, metrics=['accuracy'])
+
+    # 10. 모델 훈련
+    model.fit(
+        train_dataset.shuffle(1000).batch(16),
+        validation_data=val_dataset.batch(16),
+        epochs=5
+    )
+    # Change id2label, label2id in model.config
+    import re
+
+    id2labels = model.config.id2label
+    model.config.id2label = {id : label_encoder.inverse_transform([int(re.sub('LABEL_', '', label))])[0]  for id, label in id2labels.items()}
+
+    label2ids = model.config.label2id
+    model.config.label2id = {label_encoder.inverse_transform([int(re.sub('LABEL_', '', label))])[0] : id   for id, label in id2labels.items()}
+    
+    # 11. 테스트 데이터로 성능 평가(scrips 에 있는 훈련코드와 다르게 함. 오류 발생시 scripts 코드로 변경해야 됨)
+    from transformers import TFBertForSequenceClassification, BertTokenizerFast
+    from transformers import TFBertForSequenceClassification, BertTokenizer
+    from sklearn.metrics import classification_report, f1_score
+
+    test_encodings = tokenizer(test_texts, truncation=True, padding=True)
+    test_dataset = tf.data.Dataset.from_tensor_slices((dict(test_encodings), test_labels))
+
+    predictions = model.predict(test_dataset.batch(64))
+    pred_labels = np.argmax(predictions.logits, axis=-1)
+
+    report = classification_report(test_labels, pred_labels, output_dict=True)
+
+    f1_score = report['weighted avg']['f1-score']
+    accuracy = report['accuracy']
+
+    return accuracy, f1_score
+
+# FastAPI 엔드포인트 정의
+@router.post("/train_intent/{version}")
+def train_intent(version: str):
+    """훈련 및 성능 평가를 위한 엔드포인트"""
+    accuracy, f1_score = train_intent_model()
+    
+    # 모델 저장 경로
+    model_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models','emotion', f"emotion_model_{version}")
+    
+    # 디렉토리 없으면 생성
+    os.makedirs(model_dir, exist_ok=True)
+
+    # 모델과 토크나이저 저장
+    model.save_pretrained(model_dir)
+    tokenizer.save_pretrained(model_dir)
+    
+    return {
+        "message": f"{version}훈련 및 저장이 완료되었습니다.",
+        "version": version,
+        "accuracy": accuracy,
+        "f1_score": f1_score
+    }
