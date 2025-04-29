@@ -25,7 +25,7 @@ class TextInput(BaseModel):
 
 # 파인튜닝된 모델과 토크나이저 로드
 model = intent_model.current_model #모델 경로
-tokenizer = emotion_model.current_tokenizer #모델 경로
+tokenizer = intent_model.current_tokenizer #모델 경로
 
 # 클래스 디코딩 (선택)
 from sklearn.preprocessing import LabelEncoder
