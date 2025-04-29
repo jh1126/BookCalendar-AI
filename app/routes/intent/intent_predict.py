@@ -6,6 +6,7 @@ import tensorflow as tf
 from transformers import TFBertForSequenceClassification, BertTokenizer
 from sklearn.preprocessing import LabelEncoder
 import openai
+import os
 
 from app.models import intent_model
 
