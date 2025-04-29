@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.services.intent model_loader import load_intent_model
-from app.models import intent model
+from app.models import intent_model
 
 # 모델 버전 선택 라우터
 router = APIRouter()
