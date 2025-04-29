@@ -1,8 +1,23 @@
 from fastapi import FastAPI
-from app.routes import (
+
+# Emotion
+from app.routes.emotion import (
     emotion_predict,
-    emotion_model_version,
-    emotion_settings
+    emotion_version,
+    emotion_settings,
+    emotion_train,
+    emotion_version_confirm,
+    emotion_delete,
+)
+
+# Intent
+from app.routes.intent import (
+    intent_predict,
+    intent_version,
+    intent_settings,
+    intent_train,
+    intent_version_confirm,
+    intent_delete,
 )
 
 app = FastAPI(title="AI API", version="1.0")
