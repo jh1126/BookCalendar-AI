@@ -1,6 +1,6 @@
 # 배포된 모델의 추론 파라미터 수정 함수
 from fastapi import APIRouter
-from app.models import emotion model
+from app.models import emotion_model
 
 router = APIRouter()
 
