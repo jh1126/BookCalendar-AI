@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.services.emotion model_loader import load_emotion_model
-from app.models import emotion model
+from app.models import emotion_model
 
 # 모델 버전 선택 라우터
 router = APIRouter()
