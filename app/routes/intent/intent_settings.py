@@ -1,6 +1,6 @@
 # 배포된 모델의 추론 파라미터 수정 함수
 from fastapi import APIRouter
-from app.models import intent model
+from app.models import intent_model
 
 router = APIRouter()
 
