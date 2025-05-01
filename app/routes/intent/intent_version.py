@@ -11,12 +11,9 @@ class TextInput(BaseModel):
 
 import json
 
-# JSON 파일 경로 설정
-
-
 # 사용할 모델 이름 저장 
 def save_model_metrics(model_name: str): 
-    
+    # JSON 파일 경로 설정
     METRICS_FILE = os.path.join(os.path.dirname(__file__), '..','..','models','intent','intent_model_run.json')
     
     # 새 기록만 저장
