@@ -8,7 +8,7 @@ class TextInput(BaseModel):
     deleteModelName: str
 
 
-@router.post("/deleteModel")
+@router.post("/emotion_delete")
 def delete_emotion_model(data: TextInput):
     """지정한 버전의 감정 모델 디렉토리 삭제"""
 
