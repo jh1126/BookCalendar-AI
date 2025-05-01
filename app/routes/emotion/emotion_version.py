@@ -5,9 +5,12 @@ from app.models import emotion_model
 # 모델 버전 선택 라우터
 router = APIRouter()
 
-@router.post("/set_emotion/{version}")
-def set_model_version(version: str):
-    model, tokenizer = load_emotion_model(version)
+class TextInput(BaseModel):
+    emotionModelLoad: str
+    
+@router.post("/set_emotion")
+def set_model_version(data: TextInput):
+    model, tokenizer = load_emotion_model(data.emotionModelLoad)
     emotion_model.current_model = model
     emotion_model.current_tokenizer = tokenizer
     emotion_model.current_version = version
