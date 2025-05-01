@@ -12,5 +12,5 @@ class TextInput(BaseModel):
 @router.post("/delete_emotion")
 def delete_emotion_model(data: TextInput):
     """지정한 버전의 감정 모델 디렉토리 삭제"""
-    return JSONResponse(content={"questionModel": "abcd"})
+    return JSONResponse(content={"questionModel": "모델삭제"})
 
