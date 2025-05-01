@@ -22,11 +22,6 @@ with open(api_key_path, 'r') as file:
 class TextInput(BaseModel):
     text: str
 
-
-# 파인튜닝된 모델과 토크나이저 로드
-model = intent_model.current_model #모델 경로
-tokenizer = intent_model.current_tokenizer #모델 경로
-
 # 클래스 디코딩 (선택)
 from sklearn.preprocessing import LabelEncoder
 
@@ -35,6 +30,21 @@ label_encoder.classes_ = np.array(['질문','추천'])
 
 # 예측 함수
 def predict_intent(text: str):
+
+    # 서비스에 사용중인 json파일 불러오기
+    METRICS_FILE = os.path.join(os.path.dirname(__file__), '..','..','models','intent','intent_model_run.json')
+    # 모델 경로
+    model_dir = os.path.join(os.path.dirname(__file__), '..', '..','..', 'models', 'intent')
+
+    with open(METRICS_FILE, "r") as f:
+        metrics = json.load(f)
+
+    latest_model_name = metrics[0]["model_name"]
+    model_path = os.path.join(model_dir, latest_model_name)
+
+    model = TFBertForSequenceClassification.from_pretrained(model_path)
+    tokenizer = BertTokenizer.from_pretrained(model_path)
+    
     inputs = tokenizer([text], padding=True, truncation=True, return_tensors='tf')
     outputs = model(inputs)
     logits = outputs.logits
@@ -92,23 +102,16 @@ def predict(input_data: TextInput):
     if intent == "질문":
         result = answer_book_question(text)
         return {
-            "input": text,
-            "predicted_intent": intent,
             "answer_to_question": result
         }
 
     elif intent == "추천":
         result = generate_recommendation(text)
         return {
-            "input": text,
-            "predicted_intent": intent,
             "book_recommendation": result
         }
 
     else:
         return {
-            "input": text,
-            "predicted_intent": intent,
-            "probabilities": prob,
             "message": "현재는 '질문' 또는 '추천' 의도만 지원됩니다."
         }
