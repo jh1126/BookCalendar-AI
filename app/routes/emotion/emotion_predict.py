@@ -26,6 +26,21 @@ label_encoder.classes_ = np.array(['기쁨','당황','분노','불안','슬픔']
 
 # 예측 함수
 def predict_emotion(text: str):
+
+    # 서비스에 사용중인 json파일 불러오기
+    METRICS_FILE = os.path.join(os.path.dirname(__file__), '..','..','models','emotion','emotion_model_run.json')
+    # 모델 경로
+    model_dir = os.path.join(os.path.dirname(__file__), '..', '..','..', 'models', 'emotion')
+
+    with open(METRICS_FILE, "r") as f:
+        metrics = json.load(f)
+
+    latest_model_name = metrics[0]["model_name"]
+    model_path = os.path.join(model_dir, latest_model_name)
+
+    model = TFBertForSequenceClassification.from_pretrained(model_path)
+    tokenizer = BertTokenizer.from_pretrained(model_path)
+    
     inputs = tokenizer([text], padding=True, truncation=True, return_tensors='tf')
     outputs = model(inputs)
     logits = outputs.logits
@@ -40,9 +55,4 @@ def predict(input_data: TextInput):
     text = input_data.text
     emotion, prob = predict_emotion(text)
 
-    return {
-        "input": text,
-        "predicted_emotion": emotion,
-        "probabilities": prob,
-        "question": message
-    }
+    return JSONResponse(content={"predicted_emotion": emotion})
