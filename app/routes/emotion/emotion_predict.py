@@ -5,8 +5,9 @@ import numpy as np
 import tensorflow as tf
 from transformers import TFBertForSequenceClassification, BertTokenizer
 from sklearn.preprocessing import LabelEncoder
+from fastapi.responses import JSONResponse
+import os
 
-from app.models import emotion_model
 
 router = APIRouter()
 
