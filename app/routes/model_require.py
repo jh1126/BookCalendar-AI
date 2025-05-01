@@ -8,4 +8,4 @@ router = APIRouter()
 # FastAPI 엔드포인트 정의
 @router.get("/modelRequire")
 def model_inform():
-    return JSONResponse(content={"message": "AI 서버 작동 중"})
+    return JSONResponse(content={"questionModel": "abcd"})
