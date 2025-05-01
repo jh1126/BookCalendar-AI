@@ -6,9 +6,7 @@ from app.routes import model_require
 from app.routes.emotion import (
     emotion_predict,
     emotion_version,
-    emotion_settings,
     emotion_train,
-    #emotion_version_confirm,
     emotion_delete,
 )
 
@@ -16,9 +14,7 @@ from app.routes.emotion import (
 from app.routes.intent import (
     intent_predict,
     intent_version,
-    intent_settings,
     intent_train,
-    #intent_version_confirm,
     intent_delete,
 )
 
