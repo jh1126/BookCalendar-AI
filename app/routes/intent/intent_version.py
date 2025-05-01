@@ -8,7 +8,7 @@ router = APIRouter()
 class TextInput(BaseModel):
     intentModelLoad: str
     
-# @router.post("/set_intent")
+@router.post("/set_intent")
 def set_model_version(data: TextInput):
     model, tokenizer = load_intent_model(data.intentModelLoad)
     intent_model.current_model = model
