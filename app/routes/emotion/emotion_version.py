@@ -5,6 +5,7 @@ from app.models import emotion_model
 # 모델 버전 선택 라우터
 router = APIRouter()
 
+from pydantic import BaseModel
 class TextInput(BaseModel):
     emotionModelLoad: str
     
