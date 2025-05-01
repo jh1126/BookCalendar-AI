@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 router = APIRouter()
 
+from pydantic import BaseModel
 class TextInput(BaseModel):
     deleteModelName: str
 
