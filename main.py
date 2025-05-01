@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from app.routes import model_require
+
 # Emotion
 from app.routes.emotion import (
     emotion_predict,
