@@ -143,13 +143,11 @@ def load_metrics():
     return []
     
 # 성능 기록 추가 및 저장 (버전이름, 에폭, 드롭아웃, f1_score)
-def save_model_metrics(model_name: str, epochs: int, dropout: float, accuracy: float): 
+def save_model_metrics(model_name: str, accuracy: float): 
     metrics = load_metrics()
     
     metrics.append({
         "model_name": model_name,
-        "epochs" : 5,
-        "dropout": 0.2,
         "accuracy": accuracy
     })
 
@@ -175,7 +173,7 @@ def train_intent(config: ModelConfig):
     tokenizer.save_pretrained(model_dir)
 
     #모델 요구사항 저장(버전 이름, 파라메터, 성능지표f1_score)
-    save_model_metrics(model_name, 5, 0.2, accuracy)
+    save_model_metrics(model_name, accuracy)
     
     return {
         "message": f"{model_name}훈련 및 저장이 완료되었습니다.",
