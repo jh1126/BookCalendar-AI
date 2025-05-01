@@ -7,6 +7,7 @@ from transformers import TFBertForSequenceClassification, BertTokenizer
 from sklearn.preprocessing import LabelEncoder
 import openai
 import os
+from fastapi.responses import JSONResponse
 
 from app.models import intent_model
 
@@ -101,17 +102,12 @@ def predict(input_data: TextInput):
 
     if intent == "질문":
         result = answer_book_question(text)
-        return {
-            "answer_to_question": result
-        }
+        return JSONResponse(content={"answer_to_question": result})
 
     elif intent == "추천":
         result = generate_recommendation(text)
-        return {
-            "book_recommendation": result
-        }
+        return JSONResponse(content={"book_recommendation": result})
+        
 
     else:
-        return {
-            "message": "현재는 '질문' 또는 '추천' 의도만 지원됩니다."
-        }
+        return JSONResponse(content={"message": "현재는 '질문' 또는 '추천' 의도만 지원됩니다."})
