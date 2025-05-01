@@ -7,7 +7,7 @@ router = APIRouter()
 class TextInput(BaseModel):
     deleteModelName: str
 
-@router.post("/deleteModel")
+@router.post("/delete_intent")
 def delete_intent_model(data: TextInput):
     """지정한 버전의 의도 분류 모델 디렉토리 삭제"""
 
