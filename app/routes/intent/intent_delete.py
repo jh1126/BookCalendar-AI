@@ -17,8 +17,6 @@ def delete_intent_model(data: TextInput):
     
     if os.path.exists(model_dir):
         shutil.rmtree(model_dir)  # 디렉터리 삭제
-        return {
-            "message": f"{model_name} 버전 모델이 삭제되었습니다."
-        }
+        
     else:
         raise HTTPException(status_code=404, detail=f"{model_name} 버전 모델이 존재하지 않습니다.")
