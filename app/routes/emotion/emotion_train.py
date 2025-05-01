@@ -16,6 +16,14 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
+from pydantic import BaseModel
+
+# 요청 데이터를 받을 클래스
+class ModelConfig(BaseModel):
+    newModelName: str  # 사용할 모델 이름
+    epoch: int         # 에폭 수
+    dropOut: float    # 드롭아웃 비율
+
 def load_hf_token(path):
     with open(path, "r") as file:
         token = file.read().strip()
@@ -119,15 +127,41 @@ def train_emotion_model():
 
     return accuracy, f1_score
 
+import json
 
+# JSON 파일 경로 설정
+METRICS_FILE = os.path.join(os.path.dirname(__file__), '..','..','..','data','emotion','emotion_model_metrics.json')
+
+# 모델 기록 불러오기
+def load_metrics():
+    if os.path.exists(METRICS_FILE):
+        with open(METRICS_FILE, "r") as f:
+            return json.load(f)
+    return []
+    
+# 성능 기록 추가 및 저장 (버전이름, 에폭, 드롭아웃, f1_score)
+def save_model_metrics(model_name: str, epochs: int, dropout: float, f1_score: float): 
+    metrics = load_metrics()
+    
+    metrics.append({
+        "model_name": model_name,
+        "epochs" : ,
+        "dropout": ,
+        "f1_score": f1_score
+    })
+
+    with open(METRICS_FILE, "w") as f:
+        json.dump(metrics, f, indent=4)  
+    
 # FastAPI 엔드포인트 정의
-@router.post("/train_emotion/{version}")
-def train_emotion(version: str):
+@router.post("/train_emotion")
+def train_emotion(config: ModelConfig):
     """훈련 및 성능 평가를 위한 엔드포인트"""
     accuracy, f1_score = train_emotion_model()
     
     # 모델 저장 경로
-    model_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models','emotion', f"emotion_model_{version}")
+    model_name = config.newModelName
+    model_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models','emotion',model_name)
     
     # 디렉토리 없으면 생성
     os.makedirs(model_dir, exist_ok=True)
@@ -135,10 +169,12 @@ def train_emotion(version: str):
     # 모델과 토크나이저 저장
     model.save_pretrained(model_dir)
     tokenizer.save_pretrained(model_dir)
+
+    #모델 요구사항 저장(버전 이름, 파라메터, 성능지표f1_score)
+    save_model_metrics(model_name, 5, 0.2, f1_score)
     
     return {
-        "message": f"{version}훈련 및 저장이 완료되었습니다.",
+        "message": f"{model_name}훈련 및 저장이 완료되었습니다.",
         "version": version,
-        "accuracy": accuracy,
         "f1_score": f1_score
     }
