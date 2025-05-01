@@ -5,9 +5,12 @@ from app.models import intent_model
 # 모델 버전 선택 라우터
 router = APIRouter()
 
-# @router.post("/set_intent/{version}")
-def set_model_version(version: str):
-    model, tokenizer = load_intent_model(version)
+class TextInput(BaseModel):
+    intentModelLoad: str
+    
+# @router.post("/set_intent")
+def set_model_version(data: TextInput):
+    model, tokenizer = load_intent_model(data.intentModelLoad)
     intent_model.current_model = model
     intent_model.current_tokenizer = tokenizer
     intent_model.current_version = version
