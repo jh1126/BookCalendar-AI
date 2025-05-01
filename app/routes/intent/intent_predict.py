@@ -9,7 +9,6 @@ import openai
 import os
 from fastapi.responses import JSONResponse
 
-from app.models import intent_model
 
 router = APIRouter()
 
