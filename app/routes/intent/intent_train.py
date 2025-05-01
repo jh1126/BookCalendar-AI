@@ -148,8 +148,8 @@ def save_model_metrics(model_name: str, epochs: int, dropout: float, accuracy: f
     
     metrics.append({
         "model_name": model_name,
-        "epochs" : ,
-        "dropout": ,
+        "epochs" : 5,
+        "dropout": 0.2,
         "accuracy": accuracy
     })
 
