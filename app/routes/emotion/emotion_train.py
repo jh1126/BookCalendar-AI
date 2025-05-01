@@ -139,14 +139,12 @@ def load_metrics():
             return json.load(f)
     return []
     
-# 성능 기록 추가 및 저장 (버전이름, 에폭, 드롭아웃, f1_score)
-def save_model_metrics(model_name: str, epochs: int, dropout: float, f1_score: float): 
+# 성능 기록 추가 및 저장 (버전이름, f1_score)
+def save_model_metrics(model_name: str, f1_score: float): 
     metrics = load_metrics()
     
     metrics.append({
         "model_name": model_name,
-        "epochs" : 5 ,
-        "dropout": 0.2,
         "f1_score": f1_score
     })
 
@@ -170,8 +168,8 @@ def train_emotion(config: ModelConfig):
     model.save_pretrained(model_dir)
     tokenizer.save_pretrained(model_dir)
 
-    #모델 요구사항 저장(버전 이름, 파라메터, 성능지표f1_score)
-    save_model_metrics(model_name, 5, 0.2, f1_score)
+    #모델 요구사항 저장(버전 이름, 성능지표f1_score)
+    save_model_metrics(model_name, f1_score)
     
     return {
         "message": f"{model_name}훈련 및 저장이 완료되었습니다.",
