@@ -14,8 +14,7 @@ def delete_emotion_model(data: TextInput):
 
     model_name = data.deleteModelName
     model_dir = os.path.join(
-        os.path.dirname(__file__), '..', '..','..', 'models', 'emotion', f"emotion_model_{model_name}"
-    )
+        os.path.dirname(__file__), '..', '..','..', 'models', 'emotion', model_name)
 
     if os.path.exists(model_dir):
         shutil.rmtree(model_dir)  # 디렉터리 삭제
