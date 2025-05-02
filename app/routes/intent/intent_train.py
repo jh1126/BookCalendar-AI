@@ -175,7 +175,4 @@ def train_intent(config: ModelConfig):
     #모델 요구사항 저장(버전 이름, 파라메터, 성능지표f1_score)
     save_model_metrics(model_name, accuracy)
     
-    return {
-        "message": f"{model_name}훈련 및 저장이 완료되었습니다.",
-        "accuracy": accuracy
-    }
+
