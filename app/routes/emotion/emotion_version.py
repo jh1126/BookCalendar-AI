@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+import os
 
 # 모델 버전 선택 라우터
 router = APIRouter()
