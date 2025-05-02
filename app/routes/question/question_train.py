@@ -17,7 +17,7 @@ class TrainRequest(BaseModel):
     epoch: int
     batchSize: int
 
-@router.post("/questionModelTrain")
+@router.post("/train_question")
 def train_question_model(data: TrainRequest):
     model_name = data.newModelName
     epoch = data.epoch
