@@ -27,4 +27,3 @@ def save_model_metrics(model_name: str):
 @router.post("/set_intent")
 def set_model_version(data: TextInput):
     save_model_metrics(data.intentModelLoad)
-    return {"message": f"질문 의도 분류 모델이 로드되었습니다."}
