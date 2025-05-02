@@ -20,7 +20,7 @@ from app.routes.intent import (
 
 app = FastAPI(title="AI API", version="1.0")
 
-#/modelRequire ({모델 이름, 파라메터, 성능지표}json 리턴, 서비스에 사용중인 모델, 자동학습여부)
+#/modelRequire ({모델 이름, 성능지표}json 리턴, 서비스에 사용중인 모델, 자동학습여부)
 app.include_router(model_require.router, prefix="", tags=["all"])
 
 # 감정 분석 관련 라우터 등록(관리자 서버)
