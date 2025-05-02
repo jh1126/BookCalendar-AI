@@ -15,7 +15,7 @@ CURRENT_MODEL_PATH = os.path.join(BASE_PATH, 'app', 'models', 'question', 'quest
 class ModelLoadRequest(BaseModel):
     loadModelName: str  # 사용할 모델 이름
 
-@router.post("/questionModelLoad")
+@router.post("/set_question")
 def load_question_model_version(data: ModelLoadRequest):
     model_name = data.loadModelName
 
