@@ -101,11 +101,11 @@ def predict(input_data: TextInput):
 
     if intent == "질문":
         result = answer_book_question(text)
-        return JSONResponse(content={"answer_to_question": result})
+        return JSONResponse(content={"message": result})
 
     elif intent == "추천":
         result = generate_recommendation(text)
-        return JSONResponse(content={"book_recommendation": result})
+        return JSONResponse(content={"message": result})
         
 
     else:
