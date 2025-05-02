@@ -28,4 +28,3 @@ def save_model_metrics(model_name: str):
 @router.post("/set_emotion")
 def set_model_version(data: TextInput):
     save_model_metrics(data.emotionModelLoad)
-    return {"message": f"다중 감정 분류 모델이 로드되었습니다."}
