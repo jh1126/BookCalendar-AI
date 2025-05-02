@@ -20,7 +20,7 @@ def load_question_model_version(data: ModelLoadRequest):
     model_name = data.loadModelName
 
     try:
-        # 모델 테스트 로드 (정상 여부 확인용, 실제 서비스에서는 추론 API에서 다시 로드함)
+        # 모델 테스트 로드 (정상 여부 확인용)
         model, tokenizer = load_question_model(model_name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"모델 로딩 실패: {e}")
