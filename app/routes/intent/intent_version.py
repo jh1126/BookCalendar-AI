@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-from app.models import intent_model
 
 # 모델 버전 선택 라우터
 router = APIRouter()
