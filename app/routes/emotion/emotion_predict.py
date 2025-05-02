@@ -53,4 +53,4 @@ def predict(input_data: TextInput):
     text = input_data.text
     emotion, prob = predict_emotion(text)
 
-    return JSONResponse(content={"predicted_emotion": emotion})
+    return JSONResponse(content={"emotion": emotion})
