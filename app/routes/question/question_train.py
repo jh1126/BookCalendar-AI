@@ -6,12 +6,12 @@ import os, json
 
 router = APIRouter()
 
-# 📂 경로 설정
+# 경로 설정
 BASE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..')
 METRICS_FILE = os.path.join(BASE_PATH, 'data', 'question', 'question_model_metrics.json')
 MODEL_DIR = os.path.join(BASE_PATH, 'models', 'question')
 
-# 📦 요청 데이터 구조 정의
+# 요청 데이터 구조 정의
 class TrainRequest(BaseModel):
     newModelName: str
     epoch: int
@@ -30,16 +30,16 @@ def train_question_model(data: TrainRequest):
     if os.path.exists(model_path):
         raise HTTPException(status_code=400, detail="이미 존재하는 모델 이름입니다.")
 
-    # ✅ 실제 훈련 로직은 여기에 연결할 수 있음
+    # 실제 훈련 로직은 여기에 연결할 수 있음
     # train_question_model_fn(model_name, epoch, batch_size)
 
     # 여기선 디렉토리만 생성
     os.makedirs(model_path, exist_ok=True)
 
-    # ❗ 예시용 dummy ROUGE 점수
+    # 예시용 dummy ROUGE 점수
     dummy_rouge_score = 0.7324
 
-    # 🔧 모델 성능 기록 항목 생성
+    # 모델 성능 기록 항목 생성
     new_entry = {
         "modelName": model_name,
         "epoch": epoch,
