@@ -7,7 +7,7 @@ from transformers import TFBertForSequenceClassification, BertTokenizer
 from sklearn.preprocessing import LabelEncoder
 from fastapi.responses import JSONResponse
 import os
-
+import json
 
 router = APIRouter()
 
