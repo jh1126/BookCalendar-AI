@@ -8,6 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 import openai
 import os
 from fastapi.responses import JSONResponse
+import json
 
 
 router = APIRouter()
