@@ -57,7 +57,7 @@ def train_emotion_model():
     # 5. 모델 준비 (Hugging Face)
     from transformers import AutoTokenizer
     model_name = "klue/bert-base"
-    token_path = os.path.join(os.path.dirname(__file__), '..', '..', 'secret', 'hf_token.txt')
+    token_path = os.path.join(os.path.dirname(__file__), '..', '..','..', 'secret', 'hf_token.txt')
     token_path = os.path.abspath(token_path)
     
     from huggingface_hub import login
@@ -162,7 +162,7 @@ def train_emotion(config: ModelConfig):
     
     # 모델 저장 경로
     model_name = config.newModelName
-    model_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models','emotion',model_name)
+    model_dir = os.path.join(os.path.dirname(__file__), '..', '..','..', 'models','emotion',model_name)
     
     # 디렉토리 없으면 생성
     os.makedirs(model_dir, exist_ok=True)
