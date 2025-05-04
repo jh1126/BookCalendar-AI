@@ -48,5 +48,3 @@ def delete_model(request: DeleteRequest):
         if current.get("modelName") == delete_name:
             with open(CURRENT_FILE, "w", encoding="utf-8") as f:
                 json.dump({"modelName": ""}, f, indent=2)
-
-    return {"message": f"모델 '{delete_name}' 삭제 완료."}
