@@ -8,7 +8,7 @@ router = APIRouter()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-MODEL_TYPES = ["question", "intention", "emotion"]
+MODEL_TYPES = ["question", "intent", "emotion"]
 
 # 자동학습 여부 설정(미완료)
 MODEL_AUTO_FLAGS = {
