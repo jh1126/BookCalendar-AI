@@ -31,7 +31,7 @@ def load_hf_token(path):
 
 def train_emotion_model():
     # 훈련에 필요한 데이터셋(다중 감정 분류를 위한 데이터셋) 불러오기
-    data_path = os.path.join(os.path.dirname(__file__), '..', '..', '..',data', 'emotion', 'processed', 'emotion_all_data.csv')
+    data_path = os.path.join(os.path.dirname(__file__), '..', '..', '..','data', 'emotion', 'processed', 'emotion_all_data.csv')
     train_df = pd.read_csv(data_path)
 
     # 2. 레이블 인코딩
