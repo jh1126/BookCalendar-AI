@@ -1,34 +1,28 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter
 import os
-import json
 
-# 라우터 선언
+# 모델 버전 선택 라우터
 router = APIRouter()
 
-# 요청 바디 모델
+from pydantic import BaseModel
 class TextInput(BaseModel):
     loadModelName: str
 
-# 경로 상수
-BASE_PATH = os.path.join(os.path.dirname(__file__), '..', '..')
-INTENT_MODEL_RUN_PATH = os.path.join(BASE_PATH, 'models', 'intent', 'intent_model_run.json')
+import json
 
-# 모델 버전 저장 함수
-def save_model_version(model_name: str):
-    # 저장할 내용: 모델 이름만 포함된 단일 딕셔너리 리스트
-    data = [{"model_name": model_name}]
+# 사용할 모델 이름 저장 
+def save_model_metrics(model_name: str): 
+    # JSON 파일 경로 설정
+    METRICS_FILE = os.path.join(os.path.dirname(__file__), '..','..','models','intent','intent_model_run.json')
     
-    # 디렉토리가 없으면 생성
-    os.makedirs(os.path.dirname(INTENT_MODEL_RUN_PATH), exist_ok=True)
+    # 새 기록만 저장
+    metrics = [{
+        "model_name": model_name
+    }]
 
-    try:
-        with open(INTENT_MODEL_RUN_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"모델 버전 저장 실패: {e}")
-
-# POST 엔드포인트
+    with open(METRICS_FILE, "w") as f:
+        json.dump(metrics, f, indent=4) 
+        
 @router.post("/set_intent")
 def set_model_version(data: TextInput):
-    save_model_version(data.loadModelName)
+    save_model_metrics(data.loadModelName)
