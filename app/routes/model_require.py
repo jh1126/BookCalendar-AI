@@ -14,7 +14,7 @@ MODEL_TYPES = ["question", "intent", "emotion"]
 MODEL_AUTO_FLAGS = {
     "question": 0,
     "emotion": 1,
-    "intention": 0
+    "intent": 0
 }
 
 #모든 버전 리스트 json
