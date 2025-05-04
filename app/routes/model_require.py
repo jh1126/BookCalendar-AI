@@ -13,8 +13,9 @@ MODEL_TYPES = ["question", "intent", "emotion"]
 # 자동학습 여부 설정(미완료)
 MODEL_AUTO_FLAGS = {
     "question": 0,
-    "emotion": 1,
-    "intent": 0
+    "intent": 0,
+    "emotion": 1
+    
 }
 
 #모든 버전 리스트 json
