@@ -16,7 +16,6 @@ class QuestionModelConfig(BaseModel):
     modelName: str
     epoch: int
     batchSize: int
-    dropOut: float  # 현재는 사용하지 않지만, 나중에 config에 반영할 수 있음
 
 def train_question_model(data: QuestionModelConfig):
     # 1. 데이터 로드
@@ -25,7 +24,7 @@ def train_question_model(data: QuestionModelConfig):
     dataset = Dataset.from_pandas(df)
 
     # 2. 토크나이저 및 모델 로딩
-    model_name = "KETI-AIR/ke-t5-small"
+    model_name = "KETI-AIR/ke-t5-base"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
@@ -124,9 +123,3 @@ def train_question_model(data: QuestionModelConfig):
 
     with open(metrics_file, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2, ensure_ascii=False)
-
-    return rouge_score
-
-        dropout=data.dropOut,
-        rouge_score=rouge_score
-    )
