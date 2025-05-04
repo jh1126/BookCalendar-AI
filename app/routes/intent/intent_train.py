@@ -29,7 +29,7 @@ def load_hf_token(path):
         token = file.read().strip()
     return token
 
-def train_emotion_model():
+def train_intent_model():
     # 훈련에 필요한 데이터셋(질문 의도 분류를 위한 데이터셋) 불러오기
     data_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'intent', 'processed', 'intent_all_data.csv')
     train_df = pd.read_csv(data_path)
@@ -172,7 +172,7 @@ def train_intent(config: ModelConfig):
     model.save_pretrained(model_dir)
     tokenizer.save_pretrained(model_dir)
 
-    #모델 요구사항 저장(버전 이름, 파라메터, 성능지표f1_score)
+    #모델 요구사항 저장(버전 이름, 성능지표f1_score)
     save_model_metrics(model_name, accuracy)
     
 
