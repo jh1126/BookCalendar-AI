@@ -6,7 +6,7 @@ router = APIRouter()
 
 from pydantic import BaseModel
 class TextInput(BaseModel):
-    emotionModelLoad: str
+    loadModelName: str
 
 import json
 
