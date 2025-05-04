@@ -18,6 +18,14 @@ from app.routes.intent import (
     intent_delete,
 )
 
+#Question
+from app.routes.question import (
+    question_predict,
+    question_version,
+    question_train,
+    question_delete,
+)
+
 app = FastAPI(title="AI API", version="1.0")
 
 #/modelRequire ({모델 이름, 성능지표}json 리턴, 서비스에 사용중인 모델, 자동학습여부)
@@ -38,6 +46,12 @@ app.include_router(intent_delete.router, prefix="/intent", tags=["intent"]) # �
 #app.include_router(intent_logs.router, prefix="/intent", tags=["intent"]) # 장애 기록 정보 제공(미완료)
 # 의도 분류 예측 (서비스 서버)
 app.include_router(intent_predict.router, prefix="/intent", tags=["intent"]) # 모델 예측
+
+#Question
+app.include_router(question_train.router, prefix="/question", tags=["question"])
+app.include_router(question_version.router, prefix="/question", tags=["question"])
+app.include_router(question_delete.router, prefix="/question", tags=["question"])
+app.include_router(question_predict.router, prefix="/question", tags=["question"])
 
 
 
