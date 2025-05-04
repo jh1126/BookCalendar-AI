@@ -17,7 +17,8 @@ def save_model_metrics(model_name: str):
     
     # 새 기록만 저장
     metrics = [{
-        "model_name": model_name
+        "model_name": model_name,
+        "accuracy": accuracy
     }]
 
     with open(METRICS_FILE, "w") as f:
