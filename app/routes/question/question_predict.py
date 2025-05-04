@@ -1,24 +1,27 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.services.question.question_predictor import predict_question
+from app.services.question.question_predictor import predict_question  # 여기도 수정 필요
 
 router = APIRouter()
 
-class QuestionRequest(BaseModel):
+class ParagraphRequest(BaseModel):
     paragraph: str
-    version: str
 
 @router.post("/predict_question")
-def predict(input_data: QuestionRequest):
-    paragraph = input_data.paragraph
-    version = input_data.version
+def predict(request: ParagraphRequest):
+    paragraph = request.paragraph
 
     try:
-        questions = predict_question(paragraph, version)
+        # 버전 없이 predict_question 함수 호출
+        questions = predict_question(paragraph)
+
+        # 질문이 2개 이상이어야 함
+        if not isinstance(questions, list) or len(questions) < 2:
+            raise ValueError("질문이 2개 이상 생성되지 않았습니다.")
+
         return {
-            "input": paragraph,
-            "version": version,
-            "generated_questions": questions
+            "question1": questions[0],
+            "question2": questions[1]
         }
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
