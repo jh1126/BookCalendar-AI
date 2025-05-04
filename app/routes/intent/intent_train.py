@@ -29,7 +29,7 @@ def load_hf_token(path):
         token = file.read().strip()
     return token
 
-def train_intent_model():
+def train_intent_model(data:ModelConfig):
     # 훈련에 필요한 데이터셋(질문 의도 분류를 위한 데이터셋) 불러오기
     data_path = os.path.join(os.path.dirname(__file__), '..', '..','..', 'data', 'intent', 'processed', 'intent_all_data.csv')
     train_df = pd.read_csv(data_path)
@@ -110,6 +110,17 @@ def train_intent_model():
 
     label2ids = model.config.label2id
     model.config.label2id = {label_encoder.inverse_transform([int(re.sub('LABEL_', '', label))])[0] : id   for id, label in id2labels.items()}
+
+    # 모델 저장 경로
+    model_name2 = data.newModelName
+    model_dir = os.path.join(os.path.dirname(__file__), '..', '..','..', 'models','intent', model_name2)
+    
+    # 디렉토리 없으면 생성
+    os.makedirs(model_dir, exist_ok=True)
+
+    # 모델과 토크나이저 저장
+    model.save_pretrained(model_dir)
+    tokenizer.save_pretrained(model_dir)
     
     # 11. 테스트 데이터로 성능 평가(scrips 에 있는 훈련코드와 다르게 함. 오류 발생시 scripts 코드로 변경해야 됨)
     from transformers import TFBertForSequenceClassification, BertTokenizerFast
@@ -157,21 +168,12 @@ def save_model_metrics(model_name: str, accuracy: float):
 
 # FastAPI 엔드포인트 정의
 @router.post("/train_intent")
-def train_intent(config: ModelConfig):
+def train_intent(data: ModelConfig):
     """훈련 및 성능 평가를 위한 엔드포인트"""
-    accuracy, f1_score = train_intent_model()
-    
-    # 모델 저장 경로
-    model_name= config.newModelName
-    model_dir = os.path.join(os.path.dirname(__file__), '..', '..','..', 'models','intent', model_name)
-    
-    # 디렉토리 없으면 생성
-    os.makedirs(model_dir, exist_ok=True)
+    accuracy, f1_score = train_intent_model(data)
 
-    # 모델과 토크나이저 저장
-    model.save_pretrained(model_dir)
-    tokenizer.save_pretrained(model_dir)
-
+    model_name = data.newModelName
+    
     #모델 요구사항 저장(버전 이름, 성능지표f1_score)
     save_model_metrics(model_name, accuracy)
     
