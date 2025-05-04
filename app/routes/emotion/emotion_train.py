@@ -154,6 +154,9 @@ def save_model_metrics(model_name: str, f1_score: float):
 # FastAPI 엔드포인트 정의
 @router.post("/train_emotion")
 def train_emotion(config: ModelConfig):
+    print(f"모델 이름: {config.newModelName}")
+    print(f"에폭 수: {config.epoch}")
+    print(f"DropOut 비율: {config.dropOut}")
     """훈련 및 성능 평가를 위한 엔드포인트"""
     accuracy, f1_score = train_emotion_model()
     
