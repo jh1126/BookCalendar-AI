@@ -26,4 +26,4 @@ def save_model_metrics(model_name: str):
         
 @router.post("/set_emotion")
 def set_model_version(data: TextInput):
-    save_model_metrics(data.emotionModelLoad)
+    save_model_metrics(data.loadModelName)
