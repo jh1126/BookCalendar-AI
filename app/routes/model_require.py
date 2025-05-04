@@ -60,6 +60,5 @@ def model_inform():
     # 자동학습 플래그
     for model_type in MODEL_TYPES:
         result[f"{model_type}ModelAuto"] = MODEL_AUTO_FLAGS.get(model_type, 0)
-
-    print(result)
+        
     return JSONResponse(content=result)
