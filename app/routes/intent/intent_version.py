@@ -6,7 +6,7 @@ router = APIRouter()
 
 from pydantic import BaseModel
 class TextInput(BaseModel):
-    intentModelLoad: str
+    loadModelName: str
 
 import json
 
@@ -25,4 +25,4 @@ def save_model_metrics(model_name: str):
         
 @router.post("/set_intent")
 def set_model_version(data: TextInput):
-    save_model_metrics(data.intentModelLoad)
+    save_model_metrics(data.loadModelName)
