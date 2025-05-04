@@ -31,7 +31,7 @@ def load_hf_token(path):
 
 def train_intent_model():
     # 훈련에 필요한 데이터셋(질문 의도 분류를 위한 데이터셋) 불러오기
-    data_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'intent', 'processed', 'intent_all_data.csv')
+    data_path = os.path.join(os.path.dirname(__file__), '..', '..','..', 'data', 'intent', 'processed', 'intent_all_data.csv')
     train_df = pd.read_csv(data_path)
 
     # 2. 레이블 인코딩
@@ -58,7 +58,7 @@ def train_intent_model():
     # 5. 모델 준비 (Hugging Face)
     from transformers import AutoTokenizer
     model_name = "klue/bert-base"
-    token_path = os.path.join(os.path.dirname(__file__), '..', '..', 'secret', 'hf_token.txt')
+    token_path = os.path.join(os.path.dirname(__file__), '..', '..','..', 'secret', 'hf_token.txt')
     token_path = os.path.abspath(token_path)
     
     from huggingface_hub import login
@@ -163,7 +163,7 @@ def train_intent(config: ModelConfig):
     
     # 모델 저장 경로
     model_name= config.newModelName
-    model_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models','intent', model_name)
+    model_dir = os.path.join(os.path.dirname(__file__), '..', '..','..', 'models','intent', model_name)
     
     # 디렉토리 없으면 생성
     os.makedirs(model_dir, exist_ok=True)
