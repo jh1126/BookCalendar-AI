@@ -1,32 +1,32 @@
-# app/routes/question/question_version.py
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import os, json
-from app.services.question.question_model_loader import load_question_model
+import os
+import json
 
 router = APIRouter()
 
-# 현재 사용 중인 질문 생성 모델 저장 파일 경로
-BASE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..')
-CURRENT_MODEL_PATH = os.path.join(BASE_PATH, 'app', 'models', 'question', 'question_model_run.json')
+# 요청 본문 구조
+class TextInput(BaseModel):
+    loadModelName: str
 
-# 요청 형식
-class ModelLoadRequest(BaseModel):
-    loadModelName: str  # 사용할 모델 이름
+# 현재 사용 중인 question 모델 저장 파일 경로
+BASE_PATH = os.path.join(os.path.dirname(__file__), '..', '..')
+QUESTION_MODEL_RUN_PATH = os.path.join(BASE_PATH, 'app', 'models', 'question', 'question_model_run.json')
 
-@router.post("/set_question")
-def load_question_model_version(data: ModelLoadRequest):
-    model_name = data.loadModelName
+# 모델 이름 저장 함수
+def save_question_model(model_name: str):
+    data = [{ "model_name": model_name }]
+
+    # 디렉토리 없으면 생성
+    os.makedirs(os.path.dirname(QUESTION_MODEL_RUN_PATH), exist_ok=True)
 
     try:
-        # 모델 테스트 로드 (정상 여부 확인용)
-        model, tokenizer = load_question_model(model_name)
+        with open(QUESTION_MODEL_RUN_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"모델 로딩 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"모델 저장 실패: {e}")
 
-    # 현재 사용 중인 모델 이름을 JSON에 저장
-    with open(CURRENT_MODEL_PATH, "w", encoding="utf-8") as f:
-        json.dump({ "modelName": model_name }, f, indent=2)
-
-    return { "message": f"모델 '{model_name}' 로드 및 설정 완료." }
+# POST 요청 엔드포인트
+@router.post("/set_question")
+def set_question_model(data: TextInput):
+    save_question_model(data.loadModelName)
