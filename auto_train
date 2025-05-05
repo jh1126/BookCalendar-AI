@@ -1,0 +1,36 @@
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Literal
+import os
+import json
+
+router = APIRouter()
+
+DATA_FILE = "BookCalendar-AI/data/Auto_model.json"
+DEFAULT_SETTINGS = {"emotion": 0, "intent": 0, "question": 0}
+
+class AutomationRequest(BaseModel):
+    model_name: Literal["emotion", "intent", "question"]
+    run: Literal[0, 1]
+
+@router.post("/set_automation")
+def set_model_automation(data: AutomationRequest):
+    # 기존 설정 불러오기
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            settings = json.load(f)
+    else:
+        settings = DEFAULT_SETTINGS.copy()
+
+    # 설정 반영
+    settings[data.model_name] = data.run
+
+    # 저장
+    try:
+        os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"저장 실패: {str(e)}")
+
+    return {"status": "success", "model": data.model_name, "auto_run": data.run}
