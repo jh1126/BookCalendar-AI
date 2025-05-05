@@ -29,4 +29,3 @@ def set_auto_train(req: AutoTrainRequest):
     # 기존 내용 완전히 덮어쓰기
     with open(AUTO_PATH, "w", encoding="utf-8") as f:
         json.dump(new_data, f, ensure_ascii=False, indent=2)
-
