@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 
 from app.routes import model_require
+from app.routes import model_score
+from app.routes import Auto_train_settings
 
 # Emotion
 from app.routes.emotion import (
@@ -28,8 +30,13 @@ from app.routes.question import (
 
 app = FastAPI(title="AI API", version="1.0")
 
-#/modelRequire ({모델 이름, 성능지표}json 리턴, 서비스에 사용중인 모델, 자동학습여부)
+#/modelRequire ({모델 이름json 리턴, 서비스에 사용중인 모델, 자동학습여부)
 app.include_router(model_require.router, prefix="", tags=["all"])
+#/testModel(현재 사용중인 모델 성능지표 출력)
+app.include_router(model_score.router, prefix="", tags=["all"])
+#/autoTrain(자동학습)
+app.include_router(Auto_train_settings.router, prefix="", tags=["all"])
+
 
 # 감정 분석 관련 라우터 등록(관리자 서버)
 app.include_router(emotion_train.router, prefix="/emotion", tags=["emotion"]) # 학습 & 검증
