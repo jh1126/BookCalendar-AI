@@ -11,8 +11,11 @@ from datasets import Dataset
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+from fastapi.responses import JSONResponse
 
 from fastapi import APIRouter
+import json
+
 
 router = APIRouter()
 
@@ -165,9 +168,8 @@ def save_model_metrics(model_name: str, f1_score: float):
 # FastAPI 엔드포인트 정의
 @router.post("/train_emotion")
 def train_emotion(data: ModelConfig):
-    print(data.newModelName)
-    print(data.epoch)
-    print(data.dropOut)
+    return JSONResponse(content={"message": "훈련 완료되었습니다"})
+    
     """훈련 및 성능 평가를 위한 엔드포인트"""
     accuracy, f1_score = train_emotion_model(data)
     model_name = data.newModelName
