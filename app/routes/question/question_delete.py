@@ -28,7 +28,7 @@ def delete_model(request: DeleteRequest):
         model_list = json.load(f)
 
     # 모델 제거
-    new_list = [m for m in model_list if m.get("model_Name") != delete_name]
+    new_list = [m for m in model_list if m.get("model_name") != delete_name]
     if len(new_list) == len(model_list):
         raise HTTPException(status_code=404, detail="해당 모델이 목록에 없습니다.")
 
@@ -45,6 +45,6 @@ def delete_model(request: DeleteRequest):
     if os.path.exists(CURRENT_FILE):
         with open(CURRENT_FILE, encoding="utf-8") as f:
             current = json.load(f)
-        if current.get("modelName") == delete_name:
+        if current.get("model_name") == delete_name:
             with open(CURRENT_FILE, "w", encoding="utf-8") as f:
-                json.dump({"modelName": ""}, f, indent=2)
+                json.dump({"model_name": ""}, f, indent=2)
