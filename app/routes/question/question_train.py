@@ -1,3 +1,5 @@
+from fastapi import APIRouter
+from pydantic import BaseModel
 from transformers import (
     AutoTokenizer,
     AutoModelForSeq2SeqLM,
@@ -12,23 +14,25 @@ import os
 import json
 from pydantic import BaseModel
 
+router = APIRouter()
+
 class QuestionModelConfig(BaseModel):
     modelName: str
     epoch: int
     batchSize: int
 
 def train_question_model(data: QuestionModelConfig):
-    # 1. 데이터 로드
+    # 데이터 로드
     data_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'question', 'processed', 'question_train_data.csv')
     df = pd.read_csv(data_path)
     dataset = Dataset.from_pandas(df)
 
-    # 2. 토크나이저 및 모델 로딩
+    # 토크나이저 및 모델 로딩
     model_name = "KETI-AIR/ke-t5-base"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
-    # 3. 전처리 함수 정의
+    # 전처리 함수 정의
     def preprocess(example):
         inputs = tokenizer(
             example["text"],
@@ -47,12 +51,12 @@ def train_question_model(data: QuestionModelConfig):
 
     tokenized_dataset = dataset.map(preprocess, remove_columns=["text", "label"])
 
-    # 4. 데이터 분리
+    # 데이터 분리
     split = tokenized_dataset.train_test_split(test_size=0.2)
     train_dataset = split["train"]
     eval_dataset = split["test"]
 
-    # 5. 평가 함수 설정
+    # 평가 함수 설정
     rouge = evaluate.load("rouge")
 
     def compute_metrics(eval_pred):
@@ -66,7 +70,7 @@ def train_question_model(data: QuestionModelConfig):
             "rougeL": result["rougeL"]
         }
 
-    # 6. 훈련 인자 설정
+    # 훈련 인자 설정
     output_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'models', 'question', data.modelName)
     os.makedirs(output_dir, exist_ok=True)
 
@@ -97,19 +101,19 @@ def train_question_model(data: QuestionModelConfig):
         compute_metrics=compute_metrics
     )
 
-    # 7. 훈련
+    # 훈련
     trainer.train()
 
-    # 8. 평가 및 ROUGE 점수 추출
+    # 평가 및 ROUGE 점수 추출
     #eval_result = trainer.evaluate()
     #rouge_score = eval_result["eval_rougeL"]
     rouge_score = 7.03
 
-    # 9. 모델 저장
+    # 모델 저장
     model.save_pretrained(output_dir)
     tokenizer.save_pretrained(output_dir)
 
-    # 10. 메트릭 저장 (모델 이름 + ROUGE 점수만)
+    # 메트릭 저장 (모델 이름 + ROUGE 점수만)
     metrics_file = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'question', 'question_model_metrics.json')
     if os.path.exists(metrics_file):
         with open(metrics_file, "r", encoding="utf-8") as f:
@@ -124,3 +128,8 @@ def train_question_model(data: QuestionModelConfig):
 
     with open(metrics_file, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2, ensure_ascii=False)
+
+
+@router.post("/train_question")
+def api_train_question(data: QuestionModelConfig):
+    train_question_model(data)
