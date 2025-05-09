@@ -13,7 +13,7 @@ class ParagraphRequest(BaseModel):
 
 # 현재 선택된 모델 이름 불러오기
 def get_current_question_model():
-    config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'models', 'question', 'question_model_run.json')
+    config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'question', 'question_model_run.json')
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
