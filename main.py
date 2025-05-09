@@ -58,8 +58,8 @@ app.include_router(intent_predict.router, prefix="/intent", tags=["intent"]) # �
 app.include_router(question_train.router, prefix="/question", tags=["question"])
 app.include_router(question_version.router, prefix="/question", tags=["question"])
 app.include_router(question_delete.router, prefix="/question", tags=["question"])
-app.include_router(question_predict.router, prefix="/question", tags=["question"])
 # Question (서비스 서버)
+app.include_router(question_predict.router, prefix="/question", tags=["question"])
 
 
 
