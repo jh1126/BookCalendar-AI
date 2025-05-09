@@ -129,7 +129,7 @@ def train_question_model(data: QuestionModelConfig):
     with open(metrics_file, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2, ensure_ascii=False)
 
-
+#앤드포인트트
 @router.post("/train_question")
 def api_train_question(data: QuestionModelConfig):
     train_question_model(data)
