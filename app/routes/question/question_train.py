@@ -17,7 +17,7 @@ from pydantic import BaseModel
 router = APIRouter()
 
 class QuestionModelConfig(BaseModel):
-    modelName: str
+    newModelName: str
     epoch: int
     batchSize: int
 
