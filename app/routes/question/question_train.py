@@ -123,7 +123,7 @@ def train_question_model(data: QuestionModelConfig):
 
     metrics.append({
         "model_name": data.modelName,
-        "rouge_score": round(rouge_score, 4)
+        "rouge_score": rouge_score
     })
 
     with open(metrics_file, "w", encoding="utf-8") as f:
