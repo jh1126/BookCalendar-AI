@@ -23,7 +23,7 @@ class QuestionModelConfig(BaseModel):
 
 def train_question_model(data: QuestionModelConfig):
     # 데이터 로드
-    data_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'question', 'processed', 'question_train_data.csv')
+    data_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'question', 'processed', 'question_all_data.json')
     df = pd.read_csv(data_path)
     dataset = Dataset.from_pandas(df)
 
@@ -57,21 +57,21 @@ def train_question_model(data: QuestionModelConfig):
     eval_dataset = split["test"]
 
     # 평가 함수 설정
-    rouge = evaluate.load("rouge")
+    #rouge = evaluate.load("rouge")
 
-    def compute_metrics(eval_pred):
-        predictions, labels = eval_pred
-        decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
-        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-        result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
-        return {
-            "rouge1": result["rouge1"],
-            "rouge2": result["rouge2"],
-            "rougeL": result["rougeL"]
-        }
+    #def compute_metrics(eval_pred):
+    #    predictions, labels = eval_pred
+    #    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
+    #    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+    #    result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
+    #    return {
+    #        "rouge1": result["rouge1"],
+    #        "rouge2": result["rouge2"],
+    #        "rougeL": result["rougeL"]
+    #    }
 
     # 훈련 인자 설정
-    output_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'models', 'question', data.modelName)
+    output_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'models', 'question', data.newmodelName)
     os.makedirs(output_dir, exist_ok=True)
 
     training_args = Seq2SeqTrainingArguments(
