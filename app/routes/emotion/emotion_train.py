@@ -139,9 +139,6 @@ def train_emotion_model(data: ModelConfig):
     f1_score = report['weighted avg']['f1-score']
     accuracy = report['accuracy']
 
-    #모델 요구사항 저장(버전 이름, 성능지표f1_score)
-    save_model_metrics(model_name2, f1_score)
-    
     return accuracy, f1_score
 
 import json
@@ -170,11 +167,12 @@ def save_model_metrics(model_name: str, f1_score: float):
     
 # FastAPI 엔드포인트 정의
 @router.post("/train_emotion")
-def train_emotion(data: ModelConfig, background_tasks: BackgroundTasks):
+def train_emotion(data: ModelConfig):
     
-    # 백그라운드 작업 등록
-    background_tasks.add_task(train_emotion_model, data)
-    
-    return JSONResponse(content={"message": "훈련 시작하였습니다."})
-    
+    """훈련 및 성능 평가를 위한 엔드포인트"""
+    accuracy, f1_score = train_emotion_model(data)
+    model_name = data.newModelName
+
+    #모델 요구사항 저장(버전 이름, 성능지표f1_score)
+    save_model_metrics(model_name, f1_score)
 
