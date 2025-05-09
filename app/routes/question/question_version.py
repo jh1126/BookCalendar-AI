@@ -11,7 +11,7 @@ class TextInput(BaseModel):
 
 # 현재 사용 중인 question 모델 저장 파일 경로
 BASE_PATH = os.path.join(os.path.dirname(__file__), '..', '..')
-QUESTION_MODEL_RUN_PATH = os.path.join(BASE_PATH, 'app', 'models', 'question', 'question_model_run.json')
+QUESTION_MODEL_RUN_PATH = os.path.join(BASE_PATH, 'models', 'question', 'question_model_run.json')
 
 # 모델 이름 저장 함수
 def save_question_model(model_name: str):
