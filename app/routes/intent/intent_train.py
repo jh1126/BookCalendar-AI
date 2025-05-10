@@ -12,7 +12,7 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 
 router = APIRouter()
 
@@ -138,6 +138,10 @@ def train_intent_model(data:ModelConfig):
     f1_score = report['weighted avg']['f1-score']
     accuracy = report['accuracy']
 
+    #모델 요구사항 저장(버전 이름, 성능지표f1_score)
+    save_model_metrics(model_name2, accuracy)
+    
+
     return accuracy, f1_score
 
 
@@ -168,13 +172,12 @@ def save_model_metrics(model_name: str, accuracy: float):
 
 # FastAPI 엔드포인트 정의
 @router.post("/train_intent")
-def train_intent(data: ModelConfig):
-    """훈련 및 성능 평가를 위한 엔드포인트"""
-    accuracy, f1_score = train_intent_model(data)
+def train_intent(data: ModelConfig, background_tasks: BackgroundTasks):
 
-    model_name = data.newModelName
+    # 백그라운드 작업 등록
+    background_tasks.add_task(train_intent_model, data)
+
+    return JSONResponse(content={"message": "훈련 시작하였습니다."})
     
-    #모델 요구사항 저장(버전 이름, 성능지표f1_score)
-    save_model_metrics(model_name, accuracy)
     
 
