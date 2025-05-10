@@ -11,7 +11,7 @@ class TextInput(BaseModel):
 # 경로 설정
 BASE_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.join(BASE_DIR, '..', '..')
-QUESTION_MODEL_RUN_PATH = os.path.join(ROOT_DIR, 'app', 'models', 'question', 'question_model_run.json')
+QUESTION_MODEL_RUN_PATH = os.path.join(ROOT_DIR, 'models', 'question', 'question_model_run.json')
 
 # 모델 이름 저장 함수 (리스트로 저장)
 def save_question_model(model_name: str):
