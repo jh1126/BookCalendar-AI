@@ -37,6 +37,8 @@ app.include_router(model_score.router, prefix="", tags=["all"])
 #/autoTrain(자동학습)
 app.include_router(Auto_train_settings.router, prefix="", tags=["all"])
 #/errorRequest(에러기록)
+app.include_router(error_request.router, prefix="", tags=["all"])
+
 
 # 감정 분석 관련 라우터 등록(관리자 서버)
 app.include_router(emotion_train.router, prefix="/emotion", tags=["emotion"]) # 학습 & 검증
