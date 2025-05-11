@@ -36,7 +36,7 @@ app.include_router(model_require.router, prefix="", tags=["all"])
 #/testModel(현재 사용중인 모델 성능지표 출력)
 app.include_router(model_score.router, prefix="", tags=["all"])
 #/autoTrain(자동학습)
-app.include_router(Auto_train_settings.router, prefix="", tags=["all"])
+app.include_router(auto_train_settings.router, prefix="", tags=["all"])
 #/errorRequest(에러기록)
 app.include_router(error_request.router, prefix="", tags=["all"])
 
