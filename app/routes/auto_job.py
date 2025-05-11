@@ -24,7 +24,7 @@ def run_auto_training():
         payload = {
             "newModelName": f"auto_intent_model_v{today}",
             "epoch": 10,
-            "dropDown": 0.3
+            "dropOut": 0.3
         }
         requests.post(f"{API_BASE}/intentionModelTrain", json=payload)
 
@@ -32,7 +32,7 @@ def run_auto_training():
         payload = {
             "newModelName": f"auto_emotion_model_v{today}",
             "epoch": 10,
-            "dropDown": 0.3
+            "dropOut": 0.3
         }
         requests.post(f"{API_BASE}/emotionModelTrain", json=payload)
 
