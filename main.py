@@ -9,6 +9,8 @@ from app.routes import error_request
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.routes.auto_job import run_auto_training
 
+app = FastAPI() 
+
 @app.exception_handler(Exception)
 async def all_exception_handler(request: Request, exc: Exception):
     log_error(f"[{request.method}] {request.url} - {str(exc)}")
