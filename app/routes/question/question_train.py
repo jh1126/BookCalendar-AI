@@ -25,7 +25,7 @@ class QuestionModelConfig(BaseModel):
 BASE_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', '..', '..'))
 
-DATA_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'processed', 'summary_data.json')
+DATA_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'processed', 'question_all_data.json')
 MODEL_DIR = os.path.join(ROOT_DIR, 'models', 'question')
 ACTIVE_MODEL_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'question_model_run.json')
 METRICS_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'question_model_metrics.json')
