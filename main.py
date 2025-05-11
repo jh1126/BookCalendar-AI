@@ -7,7 +7,7 @@ from app.routes import error_request
 
 # 자동화 관련 import 추가
 from apscheduler.schedulers.background import BackgroundScheduler
-from app.routes.auto_job import run_auto역
+from app.routes.auto_job import run_auto
 @app.exception_handler(Exception)
 async def all_exception_handler(request: Request, exc: Exception):
     log_error(f"[{request.method}] {request.url} - {str(exc)}")
