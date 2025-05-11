@@ -27,7 +27,7 @@ ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', '..', '..'))
 
 DATA_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'processed', 'question_all_data.json')
 MODEL_DIR = os.path.join(ROOT_DIR, 'models', 'question')
-ACTIVE_MODEL_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'question_model_run.json')
+ACTIVE_MODEL_PATH = os.path.join(ROOT_DIR, 'app', 'models', 'question', 'question_model_run.json')
 METRICS_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'question_model_metrics.json')
 
 # ===================== 내부 함수 =====================
@@ -122,7 +122,6 @@ def train_question_model(config: QuestionModelConfig):
 
     model.save_pretrained(save_path)
     tokenizer.save_pretrained(save_path)
-    save_active_model(config.newModelName)
 
     # ROUGE 평가
     metric = load_metric("rouge")
@@ -137,6 +136,7 @@ def train_question_model(config: QuestionModelConfig):
     rouge_l = result["rougeL"].mid.fmeasure
 
     save_model_metrics(config.newModelName, rouge_l)
+    save_active_model(config.newModelName)
 
 @router.post("/train_question")
 def train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
