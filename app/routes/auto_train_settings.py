@@ -6,7 +6,7 @@ import json
 router = APIRouter()
 
 # 자동화 설정 경로
-AUTO_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "Auto_model.json")
+AUTO_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "auto_model.json")
 
 class AutoTrainRequest(BaseModel):
     questionAuto: int
