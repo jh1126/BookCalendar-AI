@@ -74,7 +74,7 @@ def train_question_model(config: QuestionModelConfig):
 
     def preprocess(example):
         input_text = example["paragraph"]
-        target_text = example["question"]
+        target_text = example["summary"]
         model_inputs = tokenizer(
             input_text,
             max_length=512,
