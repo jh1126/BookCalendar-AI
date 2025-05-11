@@ -13,6 +13,8 @@ from datasets import Dataset, load_metric
 import os, json, torch
 import random
 
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:32"
+
 router = APIRouter()
 
 # 요청 데이터 포맷
