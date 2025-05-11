@@ -10,14 +10,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 MODEL_TYPES = ["question", "intent", "emotion"]
 
-# 자동학습 여부 설정(미완료)
-MODEL_AUTO_FLAGS = {
-    "question": 0,
-    "intent": 0,
-    "emotion": 1
-    
-}
-
 #모든 버전 리스트 json
 def load_metrics(model_type):
     metrics_path = os.path.join(
@@ -44,6 +36,24 @@ def load_current_model(model_type):
 
     return data[0]["model_name"] if data else None
 
+# 자동학습 json
+def auto_model(model_type): 
+    run_path = os.path.join(
+        BASE_DIR, "..", "..", "data", "auto_model.json"
+    )
+    if not os.path.exists(run_path):
+        return 0  # 기본값: 자동 학습 안 함
+
+    with open(run_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if not data:
+        return 0
+
+    # 키 이름 예: "questionAuto", "intentAuto", "emotionAuto"
+    key_name = f"{model_type}Auto"
+    return data[0].get(key_name, 0)
+    
 # FastAPI 엔드포인트 정의
 @router.get("/modelRequire")
 def model_inform():
@@ -59,6 +69,6 @@ def model_inform():
 
     # 자동학습 플래그
     for model_type in MODEL_TYPES:
-        result[f"{model_type}ModelAuto"] = MODEL_AUTO_FLAGS.get(model_type, 0)
+        result[f"{model_type}ModelAuto"] =  auto_model(model_type)
         
     return JSONResponse(content=result)
