@@ -142,6 +142,5 @@ def train_question_model(config: QuestionModelConfig):
 def train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(train_question_model, config)
-        return JSONResponse(content={"message": "질문 생성 모델 훈련을 시작하였습니다."})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
