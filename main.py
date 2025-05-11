@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from fastapi import Request
 from app.routes import model_require
 from app.routes import model_score
 from app.routes import auto_train_settings
