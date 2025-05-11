@@ -102,14 +102,16 @@ def train_question_model(config: QuestionModelConfig):
         output_dir=save_path,
         evaluation_strategy="epoch",
         learning_rate=5e-5,
-        per_device_train_batch_size=config.batchSize,
-        per_device_eval_batch_size=config.batchSize,
+        per_device_train_batch_size=4,
+        per_device_eval_batch_size=4,
         num_train_epochs=config.epoch,
         weight_decay=0.01,
         save_total_limit=1,
+        eval_accumulation_steps=8,
         fp16=False,
         report_to="none"
     )
+
 
     trainer = Trainer(
         model=model,
