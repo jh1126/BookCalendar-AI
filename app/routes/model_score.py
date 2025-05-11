@@ -25,7 +25,15 @@ def get_current_models_status():
             model_name = ""
 
         # metrics.json 로드
-        score_key = "ROUGE Score" if model_type == "question" else "f1_score"
+        # 모델 타입에 따른 score_key 설정
+        if model_type == "emotion":
+            score_key = "f1_score"
+        elif model_type == "intent":
+            score_key = "accuracy"
+        elif model_type == "question":
+            score_key = "ROUGE Score"
+        else:
+            raise ValueError(f"Unknown model_type: {model_type}")
         try:
             with open(metrics_path, "r") as f:
                 metrics_data = json.load(f)
@@ -34,10 +42,11 @@ def get_current_models_status():
                 0.0
             )
         except:
-            f1_score = 0.0
+            score = 0.0
 
         # 결과에 추가
         result[f"{model_type}Model"] = model_name
-        result[f"{model_type}Score"] = round(f1_score, 4)
+        result[f"{model_type}Score"] = round(score, 4)
 
     return result
+
