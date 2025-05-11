@@ -48,6 +48,17 @@ def generate_questions(paragraph: str):
 @router.post("/predict_question")
 def predict(input_data: ParagraphRequest):
     paragraph = input_data.paragraph
+    try:
+        questions = generate_questions(paragraph)
+        if not isinstance(questions, list) or len(questions) < 2:
+            raise ValueError("질문이 2개 이상 생성되지 않았습니다.")
+        return {
+            "question1": questions[0],
+            "question2": questions[1]
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     try:
         questions = generate_questions(paragraph)
