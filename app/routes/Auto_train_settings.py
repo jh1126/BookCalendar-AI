@@ -18,7 +18,7 @@ def set_auto_train(req: AutoTrainRequest):
     # 저장할 내용 구성
     new_data = {
         "questionAuto": req.questionAuto,
-        "intentAuto": req.intentionAuto,
+        "intentAuto": req.intentAuto,
         "emotionAuto": req.emotionAuto
     }
 
