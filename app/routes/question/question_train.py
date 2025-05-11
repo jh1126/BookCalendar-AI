@@ -129,18 +129,33 @@ def train_question_model(config: QuestionModelConfig):
 
     # ROUGE 평가
     metric = load_metric("rouge")
+    # 예측
     preds = trainer.predict(tokenized["test"])
-    decoded_preds = tokenizer.batch_decode(preds.predictions, skip_special_tokens=True)
-    decoded_labels = tokenizer.batch_decode(preds.label_ids, skip_special_tokens=True)
 
+    # 예측 결과 변환 (타입 에러 방지용)
+    # preds.predictions가 list of tensors 또는 list of list[int] 일 경우 모두 처리
+    decoded_preds = tokenizer.batch_decode(
+        [pred.tolist() if hasattr(pred, "tolist") else pred for pred in preds.predictions],
+        skip_special_tokens=True
+    )
+    decoded_labels = tokenizer.batch_decode(
+        [label.tolist() if hasattr(label, "tolist") else label for label in preds.label_ids],
+        skip_special_tokens=True
+    )
+
+    # 후처리
     decoded_preds = [pred.strip() for pred in decoded_preds]
     decoded_labels = [label.strip() for label in decoded_labels]
 
+    # ROUGE 평가 (기존 load_metric 그대로 사용)
+    metric = load_metric("rouge")
     result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
     rouge_l = result["rougeL"].mid.fmeasure
 
+    # 저장
     save_model_metrics(config.newModelName, rouge_l)
     save_active_model(config.newModelName)
+
 
 @router.post("/train_question")
 def train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
