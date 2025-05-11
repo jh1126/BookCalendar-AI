@@ -1,112 +1,102 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from transformers import BartForConditionalGeneration, PreTrainedTokenizerFast
-import os, json, torch, random, re
-from konlpy.tag import Okt
+from transformers import BartForConditionalGeneration, PreTrainedTokenizerFast, Trainer, TrainingArguments, DataCollatorForSeq2Seq
+from datasets import Dataset
+import os, json, torch
 
 router = APIRouter()
-okt = Okt()
 
-# 요청 형식
-class ParagraphRequest(BaseModel):
-    paragraph: str
+# 요청 데이터 모델 정의
+class TrainRequest(BaseModel):
+    model_name: str
+    epoch: int
+    batch_size: int
 
-# 경로
+# 경로 설정
 BASE_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', '..'))
+DATA_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'processed', 'summary_data.json')
+MODEL_SAVE_DIR = os.path.join(ROOT_DIR, 'models', 'question')
 CONFIG_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'question_model_run.json')
-TEMPLATE_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'processed', 'question_data.json')
-MODEL_BASE_PATH = os.path.join(ROOT_DIR, 'models', 'question')  # 실제 모델들이 있는 디렉토리
 
-# 현재 설정된 요약 모델 이름 불러오기
-def get_current_summary_model_name():
+# 전처리 함수
+def preprocess(example, tokenizer):
+    input_text = example["paragraph"]
+    target_text = example["question"]
+    model_inputs = tokenizer(
+        input_text,
+        max_length=512,
+        padding="max_length",
+        truncation=True,
+    )
+    labels = tokenizer(
+        target_text,
+        max_length=64,
+        padding="max_length",
+        truncation=True
+    )["input_ids"]
+    model_inputs["labels"] = labels
+    return model_inputs
+
+# 라우터
+@router.post("/train_question_model")
+def train_question_model(request: TrainRequest):
     try:
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            if isinstance(data, list) and len(data) > 0:
-                return data[0].get("model_name")
-            elif isinstance(data, dict):
-                return data.get("model_name")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"모델 설정 파일 오류: {e}")
-    raise HTTPException(status_code=404, detail="현재 설정된 요약 모델이 없습니다.")
+        # 1. 데이터 로드
+        with open(DATA_PATH, encoding="utf-8") as f:
+            raw_data = json.load(f)
+        dataset = Dataset.from_list(raw_data).train_test_split(test_size=0.1)
 
-# 불용어 + 조사 제거
-def clean_keywords(keywords):
-    stopwords = {
-        "것", "정말", "진짜", "그냥", "너무", "매우", "좀", "거의",
-        "나", "너", "우리", "저", "그", "이", "때", "중", "수", "등",
-        "그리고", "그래서", "하지만", "그러나", "그때", "요즘", "오늘", "내일"
-    }
-    cleaned = []
-    for kw in keywords:
-        kw = re.sub(r"(의|에|에서|으로|로|와|과|는|은|가|이|를|을)$", "", kw)
-        if kw not in stopwords and len(kw) > 1:
-            cleaned.append(kw)
-    return cleaned
+        # 2. 모델 및 토크나이저 로딩
+        model_name_or_path = "digit82/kobart-summarization"
+        tokenizer = PreTrainedTokenizerFast.from_pretrained(model_name_or_path)
+        model = BartForConditionalGeneration.from_pretrained(model_name_or_path)
 
-# 조사 보정
-def adjust_postposition(keyword, template):
-    last_char = keyword[-1]
-    has_final = (ord(last_char) - 44032) % 28 != 0
-    postpositions = {
-        "(이)가": "이" if has_final else "가",
-        "(을)를": "을" if has_final else "를",
-        "(은)는": "은" if has_final else "는",
-        "(과)와": "과" if has_final else "와",
-        "(이)란": "이란" if has_final else "란",
-        "(에)": "에"
-    }
-    for token, replacement in postpositions.items():
-        template = template.replace(token, replacement)
-    return template.replace("(키워드)", keyword).strip()
+        # 3. 전처리
+        tokenized = dataset.map(lambda x: preprocess(x, tokenizer), batched=True)
+        collator = DataCollatorForSeq2Seq(tokenizer, model)
 
-# 템플릿 로딩
-with open(TEMPLATE_PATH, encoding="utf-8") as f:
-    template_data = json.load(f)["questions"]
+        # 4. 학습 인자 설정
+        output_path = os.path.join(MODEL_SAVE_DIR, request.model_name)
+        args = TrainingArguments(
+            output_dir=output_path,
+            evaluation_strategy="epoch",
+            learning_rate=5e-5,
+            per_device_train_batch_size=request.batch_size,
+            per_device_eval_batch_size=request.batch_size,
+            num_train_epochs=request.epoch,
+            weight_decay=0.01,
+            save_total_limit=1,
+            fp16=torch.cuda.is_available(),
+            report_to="none"
+        )
 
-# 요약 + 질문 생성 엔드포인트
-@router.post("/predict_question")
-def predict(input_data: ParagraphRequest):
-    try:
-        # 1. 모델 이름 로딩
-        model_name = get_current_summary_model_name()
-        model_path = os.path.join(MODEL_BASE_PATH, model_name)
+        # 5. Trainer
+        trainer = Trainer(
+            model=model,
+            args=args,
+            train_dataset=tokenized["train"],
+            eval_dataset=tokenized["test"],
+            tokenizer=tokenizer,
+            data_collator=collator,
+        )
 
-        # 2. 요약 모델 로딩
-        tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
-        model = BartForConditionalGeneration.from_pretrained(model_path)
-        model.eval()
+        trainer.train()
 
-        # 3. 요약 수행
-        input_ids = tokenizer.encode(input_data.paragraph, return_tensors="pt", truncation=True, max_length=512)
-        summary_output = model.generate(input_ids, max_length=128, num_beams=4, early_stopping=True)
-        summary = tokenizer.decode(summary_output[0], skip_special_tokens=True)
+        # 6. 모델 저장
+        model.save_pretrained(output_path)
+        tokenizer.save_pretrained(output_path)
 
-        # 4. 키워드 추출
-        nouns = okt.nouns(summary)
-        keywords = clean_keywords(nouns)[:5]
-
-        # 5. 질문 생성
-        random.shuffle(keywords)
-        questions = []
-        for kw in keywords:
-            candidates = [q["template"] for q in template_data if "(키워드)" in q["template"]]
-            if not candidates:
-                continue
-            template = random.choice(candidates)
-            adjusted = adjust_postposition(kw, template)
-            questions.append(adjusted)
-            if len(questions) == 2:
-                break
-
-        if len(questions) < 2:
-            raise HTTPException(status_code=500, detail="질문이 충분히 생성되지 않았습니다.")
+        # 7. question_model_run.json 갱신
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump([{"model_name": request.model_name}], f, indent=4, ensure_ascii=False)
 
         return {
-            "question1": questions[0],
-            "question2": questions[1]
+            "status": "success",
+            "message": f"모델 '{request.model_name}' 학습 완료 및 저장됨.",
+            "model_path": output_path
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"처리 중 오류 발생: {e}")
+        raise HTTPException(status_code=500, detail=f"모델 학습 중 오류: {e}")
+
