@@ -9,9 +9,9 @@ router = APIRouter()
 AUTO_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "Auto_model.json")
 
 class AutoTrainRequest(BaseModel):
-    questionAuto: int
-    intentionAuto: int
-    emotionAuto: int
+    questionModelAuto: int
+    intentionModelAuto: int
+    emotionModelAuto: int
 
 @router.post("/autoTrain")
 def set_auto_train(req: AutoTrainRequest):
