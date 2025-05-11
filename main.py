@@ -5,6 +5,11 @@ from app.routes import model_score
 from app.routes import auto_train_settings
 from app.routes import error_request
 
+# 자동화 관련 import 추가
+from apscheduler.schedulers.background import BackgroundScheduler
+from app.routes.auto_job import run_auto_training
+import datetime
+
 # Emotion
 from app.routes.emotion import (
     emotion_predict,
@@ -12,6 +17,23 @@ from app.routes.emotion import (
     emotion_train,
     emotion_delete,
 )
+# 자동화 시간 설정
+def start_scheduler():
+    scheduler = BackgroundScheduler(timezone="Asia/Seoul")  # 한국 시간 설정
+
+    # 매월 첫째 주 월요일 오전 3시에 실행
+    scheduler.add_job(
+        run_auto_training,
+        trigger='cron',
+        day='1-7',       # 첫째 주 (1~7일)
+        day_of_week='mon',
+        hour=3,
+        minute=0,
+        id="auto_train_job",
+        replace_existing=True
+    )
+
+    scheduler.start()
 
 # Intent
 from app.routes.intent import (
@@ -64,7 +86,7 @@ app.include_router(question_delete.router, prefix="/question", tags=["question"]
 # Question (서비스 서버)
 app.include_router(question_predict.router, prefix="/question", tags=["question"])
 
-
+start_scheduler()
 
 @app.get("/")
 def read_root():
