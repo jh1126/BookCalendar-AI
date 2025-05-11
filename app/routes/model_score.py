@@ -25,10 +25,14 @@ def get_current_models_status():
             model_name = ""
 
         # metrics.json 로드
+        score_key = "ROUGE Score" if model_type == "question" else "f1_score"
         try:
             with open(metrics_path, "r") as f:
                 metrics_data = json.load(f)
-            f1_score = next((m["f1_score"] for m in metrics_data if m.get("model_name") == model_name), 0.0)
+            score = next(
+                (entry.get(score_key, 0.0) for entry in metrics_data if entry.get("model_name") == model_name),
+                0.0
+            )
         except:
             f1_score = 0.0
 
