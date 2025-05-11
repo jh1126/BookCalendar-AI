@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.routes import model_require
 from app.routes import model_score
 from app.routes import Auto_train_settings
+from app.routes.question import error_request
 
 # Emotion
 from app.routes.emotion import (
