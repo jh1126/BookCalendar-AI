@@ -123,7 +123,7 @@ def train_question_model(config: QuestionModelConfig):
 
     save_model_metrics(config.newModelName, rouge_l)
 
-@router.post("/train_question_model")
+@router.post("/train_question")
 def train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(train_question_model, config)
