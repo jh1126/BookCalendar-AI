@@ -1,135 +1,100 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from transformers import (
-    AutoTokenizer,
-    AutoModelForSeq2SeqLM,
-    Seq2SeqTrainer,
-    Seq2SeqTrainingArguments,
-    DataCollatorForSeq2Seq
-)
-from datasets import Dataset
-#import evaluate
-import pandas as pd
-import os
-import json
-from pydantic import BaseModel
+import os, json, torch, random, re
+from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
+from konlpy.tag import Okt
 
 router = APIRouter()
+okt = Okt()
 
-class QuestionModelConfig(BaseModel):
-    newModelName: str
-    epoch: int
-    batchSize: int
+# 요청 형식 정의
+class ParagraphRequest(BaseModel):
+    paragraph: str
 
-def train_question_model(data: QuestionModelConfig):
-    # 데이터 로드
-    data_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'question', 'processed', 'question_all_data.json')
-    df = pd.read_csv(data_path)
-    dataset = Dataset.from_pandas(df)
+# 경로 설정
+BASE_DIR = os.path.dirname(__file__)
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..', '..'))
+QUESTION_TEMPLATE_PATH = os.path.join(PROJECT_ROOT, 'data', 'question', 'processed', 'question_data.json')
+SUMMARY_MODEL_PATH = os.path.join(PROJECT_ROOT, 'models', 'summary', 'kobart_summary_model_v6')  # 모델 경로는 수정 가능
 
-    # 토크나이저 및 모델 로딩
-    model_name = "KETI-AIR/ke-t5-base"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+# 요약 모델 로딩
+tokenizer = PreTrainedTokenizerFast.from_pretrained(SUMMARY_MODEL_PATH)
+model = BartForConditionalGeneration.from_pretrained(SUMMARY_MODEL_PATH)
 
-    # 전처리 함수 정의
-    def preprocess(example):
-        inputs = tokenizer(
-            example["text"],
-            max_length=512,
-            truncation=True,
-            padding="max_length"
-        )
-        targets = tokenizer(
-            example["label"],
-            max_length=64,
-            truncation=True,
-            padding="max_length"
-        )
-        inputs["labels"] = targets["input_ids"]
-        return inputs
+# 템플릿 불러오기
+with open(QUESTION_TEMPLATE_PATH, encoding="utf-8") as f:
+    question_templates = json.load(f)["questions"]
 
-    tokenized_dataset = dataset.map(preprocess, remove_columns=["text", "label"])
+# 불용어 및 조사 제거 함수
+def clean_keywords(keywords):
+    stopwords = {"것", "정말", "진짜", "그냥", "너무", "매우", "좀", "거의", "나", "너", "우리", "저", "그", "이", "때", "중", "수", "등"}
+    cleaned = []
+    for kw in keywords:
+        kw = re.sub(r"(의|에|에서|으로|로|와|과|는|은|가|이|를|을)$", "", kw)
+        if kw not in stopwords and len(kw) > 1:
+            cleaned.append(kw)
+    return cleaned
 
-    # 데이터 분리
-    split = tokenized_dataset.train_test_split(test_size=0.2)
-    train_dataset = split["train"]
-    eval_dataset = split["test"]
+# 조사 보정 함수
+def adjust_postposition(keyword, template):
+    last_char = keyword[-1]
+    has_final = (ord(last_char) - 44032) % 28 != 0
+    postpositions = {
+        "(이)가": "이" if has_final else "가",
+        "(을)를": "을" if has_final else "를",
+        "(은)는": "은" if has_final else "는",
+        "(과)와": "과" if has_final else "와",
+        "(이)란": "이란" if has_final else "란",
+        "(에)": "에"
+    }
+    for token, replacement in postpositions.items():
+        template = template.replace(token, replacement)
+    return template.replace("(키워드)", keyword).strip()
 
-    # 평가 함수 설정
-    #rouge = evaluate.load("rouge")
+# 요약 함수
+def summarize_kobart(text: str) -> str:
+    model.eval()
+    input_ids = tokenizer.encode(text, return_tensors="pt", truncation=True, max_length=512)
+    output = model.generate(input_ids, max_length=128, num_beams=4, early_stopping=True)
+    return tokenizer.decode(output[0], skip_special_tokens=True)
 
-    #def compute_metrics(eval_pred):
-    #    predictions, labels = eval_pred
-    #    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
-    #    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-    #    result = rouge.compute(predictions=decoded_preds, references=decoded_labels)
-    #    return {
-    #        "rouge1": result["rouge1"],
-    #        "rouge2": result["rouge2"],
-    #        "rougeL": result["rougeL"]
-    #    }
+# 키워드 추출 (OKT + 필터링)
+def extract_keywords(text: str, top_k=5):
+    nouns = okt.nouns(text)
+    cleaned = clean_keywords(nouns)
+    return cleaned[:top_k]
 
-    # 훈련 인자 설정
-    output_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'models', 'question', data.newmodelName)
-    os.makedirs(output_dir, exist_ok=True)
+# 질문 생성
+def generate_questions(summary: str):
+    keywords = extract_keywords(summary)
+    random.shuffle(keywords)
 
-    training_args = Seq2SeqTrainingArguments(
-        output_dir=output_dir,
-        num_train_epochs=data.epoch,
-        per_device_train_batch_size=data.batchSize,
-        per_device_eval_batch_size=data.batchSize,
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        logging_strategy="epoch",
-        predict_with_generate=True,
-        save_total_limit=1,
-        learning_rate=5e-5,
-        weight_decay=0.01,
-        report_to="none"
-    )
+    results = []
+    for kw in keywords:
+        templates = [q["template"] for q in question_templates if "(키워드)" in q["template"]]
+        if not templates:
+            continue
+        template = random.choice(templates)
+        adjusted = adjust_postposition(kw, template)
+        results.append(adjusted)
+        if len(results) == 2:
+            break
 
-    data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
+    if len(results) < 2:
+        raise HTTPException(status_code=500, detail="질문이 충분히 생성되지 않았습니다.")
 
-    trainer = Seq2SeqTrainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        tokenizer=tokenizer,
-        data_collator=data_collator,
-        compute_metrics=compute_metrics
-    )
+    return results
 
-    # 훈련
-    trainer.train()
-
-    # 평가 및 ROUGE 점수 추출
-    #eval_result = trainer.evaluate()
-    #rouge_score = eval_result["eval_rougeL"]
-    rouge_score = 7.03
-
-    # 모델 저장
-    model.save_pretrained(output_dir)
-    tokenizer.save_pretrained(output_dir)
-
-    # 메트릭 저장 (모델 이름 + ROUGE 점수만)
-    metrics_file = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'question', 'question_model_metrics.json')
-    if os.path.exists(metrics_file):
-        with open(metrics_file, "r", encoding="utf-8") as f:
-            metrics = json.load(f)
-    else:
-        metrics = []
-
-    metrics.append({
-        "model_name": data.modelName,
-        "rouge_score": rouge_score
-    })
-
-    with open(metrics_file, "w", encoding="utf-8") as f:
-        json.dump(metrics, f, indent=2, ensure_ascii=False)
-
-#앤드포인트트
-@router.post("/train_question")
-def api_train_question(data: QuestionModelConfig):
-    train_question_model(data)
+# 엔드포인트
+@router.post("/predict_question")
+def predict(input_data: ParagraphRequest):
+    try:
+        summary = summarize_kobart(input_data.paragraph)
+        questions = generate_questions(summary)
+        return {
+            "summary": summary,
+            "question1": questions[0],
+            "question2": questions[1]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"예측 오류: {e}")
