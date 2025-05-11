@@ -7,51 +7,11 @@ from app.routes import error_request
 
 # 자동화 관련 import 추가
 from apscheduler.schedulers.background import BackgroundScheduler
-from app.routes.auto_job import run_auto_training
-import datetime
-
-# Emotion
-from app.routes.emotion import (
-    emotion_predict,
-    emotion_version,
-    emotion_train,
-    emotion_delete,
-)
-# 자동화 시간 설정
-def start_scheduler():
-    scheduler = BackgroundScheduler(timezone="Asia/Seoul")  # 한국 시간 설정
-
-    # 매월 첫째 주 월요일 오전 3시에 실행
-    scheduler.add_job(
-        run_auto_training,
-        trigger='cron',
-        day='1-7',       # 첫째 주 (1~7일)
-        day_of_week='mon',
-        hour=3,
-        minute=0,
-        id="auto_train_job",
-        replace_existing=True
-    )
-
-    scheduler.start()
-
-# Intent
-from app.routes.intent import (
-    intent_predict,
-    intent_version,
-    intent_train,
-    intent_delete,
-)
-
-#Question
-from app.routes.question import (
-    question_predict,
-    question_version,
-    question_train,
-    question_delete,
-)
-
-app = FastAPI(title="AI API", version="1.0")
+from app.routes.auto_job import run_auto역
+@app.exception_handler(Exception)
+async def all_exception_handler(request: Request, exc: Exception):
+    log_error(f"[{request.method}] {request.url} - {str(exc)}")
+    return JSONResponse(status_code=500, content={"message": "서버 내부 오류 발생"})
 
 #/modelRequire ({모델 이름json 리턴, 서비스에 사용중인 모델, 자동학습여부)
 app.include_router(model_require.router, prefix="", tags=["all"])
