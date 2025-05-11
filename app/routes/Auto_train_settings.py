@@ -10,16 +10,16 @@ AUTO_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "Auto_mo
 
 class AutoTrainRequest(BaseModel):
     questionAuto: int
-    intentionAuto: int
+    intentAuto: int
     emotionAuto: int
 
 @router.post("/autoTrain")
 def set_auto_train(req: AutoTrainRequest):
     # 저장할 내용 구성
     new_data = {
-        "questionModelAuto": req.questionAuto,
-        "intentModelAuto": req.intentionAuto,
-        "emotionModelAuto": req.emotionAuto
+        "questionAuto": req.questionAuto,
+        "intentAuto": req.intentionAuto,
+        "emotionAuto": req.emotionAuto
     }
 
     # 파일이 없을 경우만 생성 (디렉토리 포함)
