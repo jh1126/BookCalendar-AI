@@ -52,7 +52,7 @@ def auto_model(model_type):
 
     # 키 이름 예: "questionAuto", "intentAuto", "emotionAuto"
     key_name = f"{model_type}Auto"
-    return data[0].get(key_name, 0)
+    return data.get(key_name, 0)
     
 # FastAPI 엔드포인트 정의
 @router.get("/modelRequire")
