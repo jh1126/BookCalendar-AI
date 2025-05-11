@@ -105,7 +105,7 @@ def train_question_model(config: QuestionModelConfig):
         num_train_epochs=config.epoch,
         weight_decay=0.01,
         save_total_limit=1,
-        fp16=torch.cuda.is_available(),
+        fp16=False,
         report_to="none"
     )
 
