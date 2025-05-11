@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from app.routes.auto_job import run_auto_training
 
 from app.routes import model_require
 from app.routes import model_score
