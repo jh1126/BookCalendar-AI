@@ -47,7 +47,22 @@ def load_metrics():
     return []
 
 def save_model_metrics(model_name: str, rouge_l: float):
-    작
+    metrics = load_metrics()
+    updated = False
+    for entry in metrics:
+        if entry["model_name"] == model_name:
+            entry["ROUGE Score"] = round(rouge_l, 3)
+            updated = True
+            break
+    if not updated:
+        metrics.append({
+            "model_name": model_name,
+            "ROUGE Score": round(rouge_l, 3)
+        })
+
+    with open(METRICS_PATH, "w", encoding="utf-8") as f:
+        json.dump(metrics, f, indent=4, ensure_ascii=False)
+
 
 def train_question_model(config: QuestionModelConfig):
     raw_data = load_data()
