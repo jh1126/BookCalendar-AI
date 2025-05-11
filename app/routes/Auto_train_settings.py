@@ -16,7 +16,6 @@ class AutoTrainRequest(BaseModel):
 @router.post("/autoTrain")
 def set_auto_train(req: AutoTrainRequest):
     # 저장할 내용 구성
-    print("받은 요청", req)
     new_data = {
         "questionModelAuto": req.questionAuto,
         "intentModelAuto": req.intentionAuto,
