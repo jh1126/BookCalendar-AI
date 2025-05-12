@@ -7,11 +7,11 @@ import json
 
 router = APIRouter()
 
-# 요청 형식 정의
+#  요청 데이터 포맷
 class ParagraphRequest(BaseModel):
     paragraph: str
 
-# 현재 선택된 모델 이름 불러오기
+# 현재 사용 중인 질문 생성 모델 이름 불러오기
 def get_current_question_model():
     config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'question', 'question_model_run.json')
     try:
@@ -25,7 +25,7 @@ def get_current_question_model():
         raise HTTPException(status_code=500, detail=f"모델 설정 파일 오류: {e}")
     raise HTTPException(status_code=404, detail="현재 설정된 질문 생성 모델이 없습니다.")
 
-# 질문 생성 함수
+#  질문 생성 함수
 def generate_questions(paragraph: str):
     model_name = get_current_question_model()
     base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
@@ -37,28 +37,26 @@ def generate_questions(paragraph: str):
 
         input_text = f"질문 생성: {paragraph}"
         inputs = tokenizer([input_text], return_tensors="pt", max_length=512, truncation=True)
-        outputs = model.generate(**inputs, max_length=64, num_return_sequences=2, num_beams=5)
+
+        outputs = model.generate(
+            **inputs,
+            max_length=64,
+            num_return_sequences=2,
+            num_beams=5
+        )
 
         generated = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-        return generated[:2]  # 질문 2개
+        return generated[:2]  # 질문 2개 반환
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"모델 로딩 또는 생성 오류: {e}")
 
-# FastAPI 라우터
+#  FastAPI 라우터 - 질문 예측
 @router.post("/predict_question")
 def predict(input_data: ParagraphRequest):
-    paragraph = input_data.paragraph
-    try:
-        questions = generate_questions(paragraph)
-        if not isinstance(questions, list) or len(questions) < 2:
-            raise ValueError("질문이 2개 이상 생성되지 않았습니다.")
-        return {
-            "question1": questions[0],
-            "question2": questions[1]
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # 입력 문단 정제
+    raw_paragraph = input_data.paragraph
+    paragraph = " ".join(raw_paragraph.split())
 
     try:
         questions = generate_questions(paragraph)
