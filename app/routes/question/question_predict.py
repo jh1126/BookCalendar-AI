@@ -20,6 +20,7 @@ TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "que
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
     template_data = json.load(f)["questions"]
 
+
 # 모델 불러오기
 CONFIG_PATH = os.path.join(BASE_DIR, 'data', 'question', 'question_model_run.json')
 with open(CONFIG_PATH, encoding='utf-8') as f:
