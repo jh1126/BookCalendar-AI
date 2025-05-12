@@ -10,27 +10,39 @@ router = APIRouter()
 class ParagraphRequest(BaseModel):
     paragraph: str
 
-# 형태소 분석기 및 키워드 추출기 초기화
+# 형태소 분석기 초기화
 okt = Okt()
 
-# 경로 설정
+# ✅ 경로 기준: 프로젝트 루트
 CURRENT_DIR = os.path.dirname(__file__)
-PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, '..', '..', '..'))
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", "..", ".."))
+
+TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
+CONFIG_PATH = os.path.join(PROJECT_ROOT, "app", "models", "question", "question_model_run.json")
+MODELS_DIR = os.path.join(PROJECT_ROOT, "models", "question")
 
 # 템플릿 로딩
-TEMPLATE_PATH = os.path.join(PROJECT_ROOT, 'data', 'question', 'processed', 'question_data.json')
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
-    template_data = json.load(f)
+    template_data = json.load(f)  # ✅ 리스트 구조에 맞게
 
-# 모델 불러오기
-CONFIG_PATH = os.path.join(PROJECT_ROOT, 'app', 'models', 'question', 'question_model_run.json')
-with open(CONFIG_PATH, encoding='utf-8') as f:
-    model_info = json.load(f)
-model_name = model_info[0]['model_name'] if isinstance(model_info, list) else model_info['model_name']
-MODEL_PATH = os.path.join(PROJECT_ROOT, 'models', 'question', model_name)
+# 모델 로딩 (요청 시점에 로딩되도록 처리)
+def load_model_and_tokenizer():
+    if not os.path.exists(CONFIG_PATH):
+        raise HTTPException(status_code=500, detail="question_model_run.json 파일이 없습니다.")
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_PATH)
+    with open(CONFIG_PATH, encoding='utf-8') as f:
+        model_info = json.load(f)
+
+    model_name = model_info[0]['model_name'] if isinstance(model_info, list) else model_info['model_name']
+    model_path = os.path.join(MODELS_DIR, model_name)
+
+    if not os.path.exists(os.path.join(model_path, "config.json")):
+        raise HTTPException(status_code=500, detail=f"모델 디렉토리 {model_path}에 HuggingFace 모델이 없습니다.")
+
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+
+    return tokenizer, model
 
 # Stopwords 제거
 def clean_keywords(keywords):
@@ -43,6 +55,7 @@ def clean_keywords(keywords):
 
 # 요약 함수
 def summarize_kobart(text):
+    tokenizer, model = load_model_and_tokenizer()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
     model.to(device)
