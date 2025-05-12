@@ -9,7 +9,8 @@ from transformers import (
     Trainer,
     DataCollatorForSeq2Seq
 )
-from datasets import Dataset, load_metric
+from datasets import Dataset
+from rouge_score import rouge_scorer
 import os, json, torch
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:32"
@@ -131,8 +132,8 @@ def train_question_model(config: QuestionModelConfig):
     model.save_pretrained(save_path)
     tokenizer.save_pretrained(save_path)
 
-    # ROUGE 평가
-    metric = load_metric("rouge")
+    # ROUGE 평가 (rouge_score 이용)
+    scorer = rouge_scorer.RougeScorer(['rougeL'], use_stemmer=True)
     preds = trainer.predict(tokenized["test"])
 
     decoded_preds = tokenizer.batch_decode(preds.predictions[:20], skip_special_tokens=True)
@@ -141,10 +142,10 @@ def train_question_model(config: QuestionModelConfig):
     decoded_preds = [pred.strip() for pred in decoded_preds]
     decoded_labels = [label.strip() for label in decoded_labels]
 
-    result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-    rouge_l = result["rougeL"].mid.fmeasure
+    rouge_l_scores = [scorer.score(ref, pred)["rougeL"].fmeasure for ref, pred in zip(decoded_labels, decoded_preds)]
+    avg_rouge_l = sum(rouge_l_scores) / len(rouge_l_scores)
 
-    save_model_metrics(config.newModelName, rouge_l)
+    save_model_metrics(config.newModelName, avg_rouge_l)
     save_active_model(config.newModelName)
 
 # ===================== FastAPI 엔드포인트 =====================
@@ -153,6 +154,5 @@ def train_question_model(config: QuestionModelConfig):
 def train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(train_question_model, config)
-        return {"message": f"질문 생성 모델 '{config.newModelName}' 학습이 시작되었습니다."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
