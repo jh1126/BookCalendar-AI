@@ -15,7 +15,9 @@ okt = Okt()
 
 # 템플릿 로딩
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-TEMPLATE_PATH = os.path.join(BASE_DIR, 'data', 'question', 'processed', 'question_data.json')
+TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'question', 'processed', 'question_data.json')
+TEMPLATE_PATH = os.path.abspath(TEMPLATE_PATH)
+
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
     template_data = json.load(f)["questions"]
 
