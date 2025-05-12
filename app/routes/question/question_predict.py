@@ -14,9 +14,8 @@ class ParagraphRequest(BaseModel):
 okt = Okt()
 
 # 템플릿 로딩
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'question', 'processed', 'question_data.json')
-TEMPLATE_PATH = os.path.abspath(TEMPLATE_PATH)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
 
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
     template_data = json.load(f)["questions"]
