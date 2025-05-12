@@ -135,8 +135,8 @@ def train_question_model(config: QuestionModelConfig):
     metric = load_metric("rouge")
     preds = trainer.predict(tokenized["test"])
 
-    decoded_preds = tokenizer.batch_decode(preds.predictions[:100], skip_special_tokens=True)
-    decoded_labels = tokenizer.batch_decode(preds.label_ids[:100], skip_special_tokens=True)
+    decoded_preds = tokenizer.batch_decode(preds.predictions[:20], skip_special_tokens=True)
+    decoded_labels = tokenizer.batch_decode(preds.label_ids[:20], skip_special_tokens=True)
 
     decoded_preds = [pred.strip() for pred in decoded_preds]
     decoded_labels = [label.strip() for label in decoded_labels]
