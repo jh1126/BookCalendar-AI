@@ -20,13 +20,12 @@ TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "que
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
     template_data = json.load(f)["questions"]
 
-
 # 모델 불러오기
-CONFIG_PATH = os.path.join(BASE_DIR, 'data', 'question', 'question_model_run.json')
+CONFIG_PATH = os.path.join(PROJECT_ROOT, 'app', 'models', 'question', 'question_model_run.json')
 with open(CONFIG_PATH, encoding='utf-8') as f:
     model_info = json.load(f)
 model_name = model_info[0]['model_name'] if isinstance(model_info, list) else model_info['model_name']
-MODEL_PATH = os.path.join(BASE_DIR, 'models', 'question', model_name)
+MODEL_PATH = os.path.join(PROJECT_ROOT, 'models', 'question', model_name)
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_PATH)
@@ -121,3 +120,4 @@ def predict(input_data: ParagraphRequest):
         return {"question1": questions[0], "question2": questions[1]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
