@@ -13,12 +13,14 @@ class ParagraphRequest(BaseModel):
 # 형태소 분석기 및 키워드 추출기 초기화
 okt = Okt()
 
-# 템플릿 로딩
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
+# 경로 설정
+CURRENT_DIR = os.path.dirname(__file__)
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, '..', '..', '..'))
 
+# 템플릿 로딩
+TEMPLATE_PATH = os.path.join(PROJECT_ROOT, 'data', 'question', 'processed', 'question_data.json')
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
-    template_data = json.load(f)["questions"]
+    template_data = json.load(f)
 
 # 모델 불러오기
 CONFIG_PATH = os.path.join(PROJECT_ROOT, 'app', 'models', 'question', 'question_model_run.json')
@@ -120,4 +122,3 @@ def predict(input_data: ParagraphRequest):
         return {"question1": questions[0], "question2": questions[1]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
