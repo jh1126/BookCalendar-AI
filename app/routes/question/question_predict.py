@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from sentence_transformers import SentenceTransformer
 from konlpy.tag import Okt
 import os, json, torch, re, random
 
@@ -13,7 +12,6 @@ class ParagraphRequest(BaseModel):
 
 # 형태소 분석기 및 키워드 추출기 초기화
 okt = Okt()
-kw_model = SentenceTransformer("jhgan/ko-sbert-nli")
 
 # 템플릿 로딩
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
