@@ -101,7 +101,7 @@ def train_intent_model(data:ModelConfig):
     model.fit(
         train_dataset.shuffle(1000).batch(16),
         validation_data=val_dataset.batch(16),
-        epochs=5
+        epochs=1
     )
     # Change id2label, label2id in model.config
     import re
