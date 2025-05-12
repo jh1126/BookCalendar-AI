@@ -57,27 +57,21 @@ def save_model_metrics(model_name: str, rouge_l: float):
                 "model_name": model_name,
                 "ROUGE Score": round(rouge_l, 3)
             })
-
-        print("METRICS 저장 시작")
         with open(METRICS_PATH, "w", encoding="utf-8") as f:
             json.dump(metrics, f, indent=4, ensure_ascii=False)
-        print("METRICS 저장 완료")
-    except Exception as e:
-        print(f"METRICS 저장 실패: {e}")
+    except:
+        pass  # 저장 오류 무시
 
 def save_active_model(model_name):
     try:
-        print("ACTIVE MODEL 저장 시작")
         with open(ACTIVE_MODEL_PATH, "w", encoding="utf-8") as f:
             json.dump([{"model_name": model_name}], f, indent=4, ensure_ascii=False)
-        print("ACTIVE MODEL 저장 완료")
-    except Exception as e:
-        print(f"ACTIVE MODEL 저장 실패: {e}")
+    except:
+        pass  # 저장 오류 무시
 
 # ===================== 메인 학습 함수 =====================
 
 def train_question_model(config: QuestionModelConfig):
-    print("질문 생성 모델 학습 시작")
     raw_data = load_data()
     dataset = Dataset.from_list(raw_data).train_test_split(test_size=0.1)
 
@@ -118,7 +112,7 @@ def train_question_model(config: QuestionModelConfig):
         num_train_epochs=config.epoch,
         weight_decay=0.01,
         save_total_limit=1,
-        eval_accumulation_steps=8,
+        eval_accumulation_steps=1,
         fp16=False,
         report_to="none"
     )
@@ -134,36 +128,24 @@ def train_question_model(config: QuestionModelConfig):
 
     trainer.train()
 
-    print("학습 완료, 모델 저장 중...")
     model.save_pretrained(save_path)
     tokenizer.save_pretrained(save_path)
-    print("모델 저장 완료")
 
     # ROUGE 평가
-    print("ROUGE 평가 시작")
     metric = load_metric("rouge")
     preds = trainer.predict(tokenized["test"])
 
-    decoded_preds = tokenizer.batch_decode(
-        [pred.tolist() if hasattr(pred, "tolist") else pred for pred in preds.predictions],
-        skip_special_tokens=True
-    )
-    decoded_labels = tokenizer.batch_decode(
-        [label.tolist() if hasattr(label, "tolist") else label for label in preds.label_ids],
-        skip_special_tokens=True
-    )
+    decoded_preds = tokenizer.batch_decode(preds.predictions[:100], skip_special_tokens=True)
+    decoded_labels = tokenizer.batch_decode(preds.label_ids[:100], skip_special_tokens=True)
 
     decoded_preds = [pred.strip() for pred in decoded_preds]
     decoded_labels = [label.strip() for label in decoded_labels]
 
     result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
     rouge_l = result["rougeL"].mid.fmeasure
-    print(f"ROUGE-L F1: {rouge_l:.4f}")
 
     save_model_metrics(config.newModelName, rouge_l)
     save_active_model(config.newModelName)
-
-    print("전체 학습 및 평가 완료")
 
 # ===================== FastAPI 엔드포인트 =====================
 
@@ -174,4 +156,3 @@ def train_question_api(config: QuestionModelConfig, background_tasks: Background
         return {"message": f"질문 생성 모델 '{config.newModelName}' 학습이 시작되었습니다."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
