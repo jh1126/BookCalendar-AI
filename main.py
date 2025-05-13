@@ -1,16 +1,15 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from app.routes.auto_job import run_auto_training
 
 from app.routes import model_require
 from app.routes import model_score
-from app.routes import auto_train_settings
 from app.routes import error_request
 
 # 오류 로거 import
 from data.log_error import log_error
 
 # 자동화 관련 import
+from app.routes import auto_train_settings
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.routes.auto_job import run_auto_training
 
