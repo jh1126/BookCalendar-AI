@@ -109,7 +109,7 @@ def generate_questions_from_template(paragraph):
     summary = summarize_kobart(paragraph)
     keywords = extract_keywords_okt(summary)
 
-    candidates = [q['template'] for q in template_data if "(키워드)" in q['template']]
+    candidates = [q['template'] for q in template_data["questions"] if "(키워드)" in q['template']]
     random.shuffle(keywords)
     questions = []
 
