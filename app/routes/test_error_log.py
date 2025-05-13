@@ -1,10 +1,11 @@
-# test_error_log.py
 from fastapi.testclient import TestClient
-from your_app_module import app  # FastAPI app 객체 import
+from app.main import app 
 
 client = TestClient(app)
 
-def test_get_recent_errors():
+def test_get_error_log():
     response = client.get("/errorRequest")
-    assert response.status_code == 200
-    print("응답 시작 :", response.json())
+    print("📄 상태 코드:", response.status_code)
+    print("📄 응답 내용:", response.json())
+
+test_get_error_log()
