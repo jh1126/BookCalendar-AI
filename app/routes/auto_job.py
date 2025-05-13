@@ -20,7 +20,7 @@ def run_auto_training():
         }
         requests.post(f"{API_BASE}/train_question", json=payload)
         try:
-            res = requests.post(f"{API_BASE}/intentionModelTrain", json=payload, timeout=10)
+            res = requests.post(f"{API_BASE}/train_question", json=payload, timeout=10)
             print(f"[question] status: {res.status_code} | response: {res.text}")
         except Exception as e:
             print(f"[question] 요청 실패: {e}")
@@ -33,7 +33,7 @@ def run_auto_training():
         }
         requests.post(f"{API_BASE}/train_intent", json=payload)
         try:
-            res = requests.post(f"{API_BASE}/intentionModelTrain", json=payload, timeout=10)
+            res = requests.post(f"{API_BASE}/train_intent", json=payload, timeout=10)
             print(f"[intent] status: {res.status_code} | response: {res.text}")
         except Exception as e:
             print(f"[intent] 요청 실패: {e}")
@@ -46,7 +46,7 @@ def run_auto_training():
         }
         requests.post(f"{API_BASE}/train_emotion", json=payload)
         try:
-            res = requests.post(f"{API_BASE}/intentionModelTrain", json=payload, timeout=10)
+            res = requests.post(f"{API_BASE}/train_emotion", json=payload, timeout=10)
             print(f"[emotion] status: {res.status_code} | response: {res.text}")
         except Exception as e:
             print(f"[emotion] 요청 실패: {e}")
