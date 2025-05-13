@@ -13,7 +13,7 @@ class ParagraphRequest(BaseModel):
 # 형태소 분석기 초기화
 okt = Okt()
 
-# ✅ 경로 기준: 프로젝트 루트
+# 경로 기준: 프로젝트 루트
 CURRENT_DIR = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", "..", ".."))
 
