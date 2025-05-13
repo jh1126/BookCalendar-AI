@@ -83,8 +83,8 @@ def train_emotion_model(data: ModelConfig):
     config = AutoConfig.from_pretrained(
         model_name,
         num_labels=num_labels,
-        hidden_dropout_prob=0.1,
-        attention_probs_dropout_prob=0.1
+        hidden_dropout_prob=0.2,
+        attention_probs_dropout_prob=0.2
     )
 
     model = TFAutoModelForSequenceClassification.from_pretrained(model_name, config=config)
