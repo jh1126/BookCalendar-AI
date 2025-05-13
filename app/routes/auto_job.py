@@ -18,7 +18,7 @@ def run_auto_training():
             "epoch": 20,
             "batchSize": 8
         }
-        requests.post(f"{API_BASE}/train_question", json=payload)
+        requests.post(f"{API_BASE}/question/train_question", json=payload)
         try:
             res = requests.post(f"{API_BASE}/train_question", json=payload, timeout=10)
             print(f"[question] status: {res.status_code} | response: {res.text}")
@@ -31,7 +31,7 @@ def run_auto_training():
             "epoch": 10,
             "dropOut": 0.3
         }
-        requests.post(f"{API_BASE}/train_intent", json=payload)
+        requests.post(f"{API_BASE}/intent/train_intent", json=payload)
         try:
             res = requests.post(f"{API_BASE}/train_intent", json=payload, timeout=10)
             print(f"[intent] status: {res.status_code} | response: {res.text}")
@@ -44,7 +44,7 @@ def run_auto_training():
             "epoch": 10,
             "dropOut": 0.3
         }
-        requests.post(f"{API_BASE}/train_emotion", json=payload)
+        requests.post(f"{API_BASE}/emotion/train_emotion", json=payload)
         try:
             res = requests.post(f"{API_BASE}/train_emotion", json=payload, timeout=10)
             print(f"[emotion] status: {res.status_code} | response: {res.text}")
