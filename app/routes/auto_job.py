@@ -19,6 +19,11 @@ def run_auto_training():
             "batchSize": 8
         }
         requests.post(f"{API_BASE}/questionModelTrain", json=payload)
+        try:
+            res = requests.post(f"{API_BASE}/intentionModelTrain", json=payload, timeout=10)
+            print(f"[question] status: {res.status_code} | response: {res.text}")
+        except Exception as e:
+            print(f"[question] 요청 실패: {e}")
 
     def trigger_intent():
         payload = {
@@ -27,6 +32,11 @@ def run_auto_training():
             "dropOut": 0.3
         }
         requests.post(f"{API_BASE}/intentionModelTrain", json=payload)
+        try:
+            res = requests.post(f"{API_BASE}/intentionModelTrain", json=payload, timeout=10)
+            print(f"[intent] status: {res.status_code} | response: {res.text}")
+        except Exception as e:
+            print(f"[intent] 요청 실패: {e}")
 
     def trigger_emotion():
         payload = {
@@ -35,6 +45,11 @@ def run_auto_training():
             "dropOut": 0.3
         }
         requests.post(f"{API_BASE}/emotionModelTrain", json=payload)
+        try:
+            res = requests.post(f"{API_BASE}/intentionModelTrain", json=payload, timeout=10)
+            print(f"[emotion] status: {res.status_code} | response: {res.text}")
+        except Exception as e:
+            print(f"[emotion] 요청 실패: {e}")
 
     if auto_flags.get("questionModelAuto") == 1:
         trigger_question()
