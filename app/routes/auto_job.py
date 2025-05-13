@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 import requests
 
-AUTO_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "Auto_model.json")
+AUTO_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "auto_model.json")
 API_BASE = "http://localhost:3004"  # FastAPI 서버 주소 맞는지 확인 필요
 
 def run_auto_training():
