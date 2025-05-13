@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 import os
 import json
+from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -48,5 +50,5 @@ def get_current_models_status():
         result[f"{model_type}Model"] = model_name
         result[f"{model_type}Score"] = round(score, 4)
 
-    return result
+    return JSONResponse(content=result)
 
