@@ -107,6 +107,7 @@ def train_question_model(config: QuestionModelConfig):
     training_args = TrainingArguments(
         output_dir=save_path,
         evaluation_strategy="epoch",
+        save_strategy="no",
         learning_rate=5e-5,
         per_device_train_batch_size=config.batchSize,
         per_device_eval_batch_size=config.batchSize,
