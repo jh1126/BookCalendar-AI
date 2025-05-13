@@ -22,7 +22,7 @@ def get_current_models_status():
         try:
             with open(run_path, "r") as f:
                 run_data = json.load(f)
-            model_name = run_data.get("model_name", "")
+            model_name = data[0]["model_name"]
         except:
             model_name = ""
 
