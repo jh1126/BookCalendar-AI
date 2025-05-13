@@ -51,11 +51,11 @@ def run_auto_training():
         except Exception as e:
             print(f"[emotion] 요청 실패: {e}")
 
-    if auto_flags.get("questionModelAuto") == 1:
+    if auto_flags.get("questionAuto") == 1:
         trigger_question()
 
-    if auto_flags.get("intentModelAuto") == 1:
+    if auto_flags.get("intentAuto") == 1:
         trigger_intent()
 
-    if auto_flags.get("emotionModelAuto") == 1:
+    if auto_flags.get("emotionAuto") == 1:
         trigger_emotion()
