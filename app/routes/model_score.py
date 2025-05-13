@@ -48,7 +48,9 @@ def get_current_models_status():
 
         # 결과에 추가
         result[f"{model_type}Model"] = model_name
+        print(model_name)
         result[f"{model_type}Score"] = round(score, 4)
+        print(score)
 
     return JSONResponse(content=result)
 
