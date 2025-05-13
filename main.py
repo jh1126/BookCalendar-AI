@@ -38,16 +38,16 @@ from app.routes.question import (
     question_delete,
 )
 
-# ✅ FastAPI 앱 생성
+# FastAPI 앱 생성
 app = FastAPI(title="AI API", version="1.0")
 
-# ✅ 전역 예외 처리기 등록
+# 전역 예외 처리기 등록
 @app.exception_handler(Exception)
 async def all_exception_handler(request: Request, exc: Exception):
     log_error(f"[{request.method}] {request.url} - {str(exc)}")
     return JSONResponse(status_code=500, content={"message": "서버 내부 오류 발생"})
 
-# ✅ 스케줄러 시작 함수
+# 스케줄러 시작 함수
 def start_scheduler():
     scheduler = BackgroundScheduler(timezone="Asia/Seoul")
     scheduler.add_job(
@@ -62,7 +62,7 @@ def start_scheduler():
     )
     scheduler.start()
 
-# ✅ 라우터 등록
+# 라우터 등록
 app.include_router(model_require.router, prefix="", tags=["all"])
 app.include_router(model_score.router, prefix="", tags=["all"])
 app.include_router(auto_train_settings.router, prefix="", tags=["all"])
@@ -83,10 +83,10 @@ app.include_router(question_version.router, prefix="/question", tags=["question"
 app.include_router(question_delete.router, prefix="/question", tags=["question"])
 app.include_router(question_predict.router, prefix="/question", tags=["question"])
 
-# ✅ 스케줄러 실행
+# 스케줄러 실행
 start_scheduler()
 
-# ✅ 기본 경로 응답
+# 기본 경로 응답
 @app.get("/")
 def read_root():
     return {"message": "AI 감정 분석 서버 작동 중!"}
