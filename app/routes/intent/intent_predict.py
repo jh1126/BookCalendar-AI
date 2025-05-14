@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from transformers import TFBertForSequenceClassification, BertTokenizer
 from sklearn.preprocessing import LabelEncoder
-import openai
+from openai import OpenAI
 import os
 from fastapi.responses import JSONResponse
 import json
