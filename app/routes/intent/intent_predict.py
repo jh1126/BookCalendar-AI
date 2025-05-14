@@ -92,7 +92,7 @@ def generate_recommendation(text: str):
         ]
     )
     
-    return response.choices[0].message["content"].strip()
+    return response.choices[0].message.content.strip()
 
 # FastAPI 라우터
 @router.post("/predict_intent")
