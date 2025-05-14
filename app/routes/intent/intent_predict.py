@@ -82,16 +82,14 @@ def generate_recommendation(text: str):
         f"이 요청을 참고하여 사용자가 원하는 장르, 카테고리, 분위기, 스토리 등을 고려한 책을 세 권 추천해 주세요. 만약 요청에 책 이름이 있다면 비슷한 종류의 책을 추천해 주세요. "
         f"추천 이유도 간단히 설명해 주세요."
     )
-
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "너는 사용자의 요청의 조건에 맞는 책을 추천하는 조언자야."},
             {"role": "user", "content": prompt}
-        ],
-        temperature=0.8,
-        max_tokens=150
+        ]
     )
+    
     return response.choices[0].message["content"].strip()
 
 # FastAPI 라우터
