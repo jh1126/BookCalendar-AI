@@ -18,6 +18,8 @@ api_key_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'secret
 # API 키 읽기
 with open(api_key_path, 'r') as file:
     openai_api_key = file.read().strip()
+    
+client = OpenAI(api_key=openai_api_key)
 
 # 요청 데이터 형식 정의 
 class TextInput(BaseModel):
