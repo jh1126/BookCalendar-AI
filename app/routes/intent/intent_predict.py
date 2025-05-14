@@ -65,16 +65,15 @@ def answer_book_question(text: str):
         f"성실하고 구체적인 답변을 해주세요."
     )
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",  
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "너는 문학 작품에 대해 깊이 있는 답변을 제공하는 독서 토론 전문가야."},
             {"role": "user", "content": prompt}
-        ],
-        temperature=0.7,
-        max_tokens=300
+        ]
     )
-    return response.choices[0].message["content"].strip()
+    
+    return response.choices[0].message.content.strip()
 
 # 도서 추천 함수
 def generate_recommendation(text: str):
