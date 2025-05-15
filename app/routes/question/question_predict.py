@@ -129,8 +129,8 @@ def generate_questions_from_template(paragraph):
 # FastAPI 라우터
 # FastAPI 라우터
 @router.post("/predict_question")
-def predict(input_data: TextInput):  # ✅ 여기 수정
-    paragraph = " ".join(input_data.text.split())  # ✅ input_data.paragraph → input_data.text
+def predict(input_data: TextInput):
+    paragraph = " ".join(input_data.text.split())  # input_data.paragraph → input_data.text
     try:
         questions = generate_questions_from_template(paragraph)
         return {"question1": questions[0], "question2": questions[1]}
