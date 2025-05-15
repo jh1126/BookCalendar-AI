@@ -19,6 +19,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", "..", ".."))
 
 TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
 CONFIG_PATH = os.path.join(PROJECT_ROOT, "app", "models", "question", "question_model_run.json")
+METRICS_PATH = os.path.join(PROJECT_ROOT, "data", "question", "question_model_metrics.json")
 MODELS_DIR = os.path.join(PROJECT_ROOT, "models", "question")
 
 # 템플릿 로딩
@@ -43,6 +44,25 @@ def load_model_and_tokenizer():
     model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
 
     return tokenizer, model
+
+#질문 수 조절
+def get_question_count():
+    if not os.path.exists(CONFIG_PATH) or not os.path.exists(METRICS_PATH):
+        return 2  # 기본값
+    try:
+        with open(CONFIG_PATH, encoding="utf-8") as f:
+            model_info = json.load(f)
+        current_model = model_info[0]['model_name'] if isinstance(model_info, list) else model_info['model_name']
+
+        with open(METRICS_PATH, encoding="utf-8") as f:
+            metrics = json.load(f)
+
+        for entry in metrics:
+            if entry['model_name'] == current_model and 'q_num' in entry:
+                return entry['q_num']
+    except:
+        pass
+    return 2
 
 # Stopwords 제거
 def clean_keywords(keywords):
@@ -104,8 +124,8 @@ def adjust_postposition(keyword, template):
 
     return template.replace("(키워드)", keyword).replace("  ", " ").strip()
 
-# 질문 생성 함수
-def generate_questions_from_template(paragraph):
+# 질문 생성 함수 (개수 조절 포함)
+def generate_questions_from_template(paragraph, target_count=2):
     summary = summarize_kobart(paragraph)
     keywords = extract_keywords_okt(summary)
 
@@ -118,22 +138,22 @@ def generate_questions_from_template(paragraph):
             break
         template = random.choice(candidates)
         questions.append(adjust_postposition(kw, template))
-        if len(questions) == 2:
+        if len(questions) >= target_count:
             break
 
-    if len(questions) < 2:
-        raise HTTPException(status_code=500, detail="질문이 2개 생성되지 않았습니다.")
+    if len(questions) < target_count:
+        raise HTTPException(status_code=500, detail=f"질문이 {target_count}개 생성되지 않았습니다.")
 
     return questions
 
-# FastAPI 라우터
 # FastAPI 라우터
 @router.post("/predict_question")
 def predict(input_data: TextInput):
     paragraph = " ".join(input_data.paragraph.split())
     try:
-        questions = generate_questions_from_template(paragraph)
-        return {"question1": questions[0], "question2": questions[1]}
+        q_num = get_question_count()
+        questions = generate_questions_from_template(paragraph, target_count=q_num)
+        return {f"question{i+1}": q for i, q in enumerate(questions)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
