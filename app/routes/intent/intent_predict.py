@@ -106,7 +106,7 @@ def predict(input_data: TextInput):
         result = answer_book_question(text)
 
         # 현재 날짜 (월 단위)
-        date_str = datetime.now().strftime("%Y-%m")
+        date_str = datetime.now().strftime("%Y-%m-%d")
 
         # DB 저장
         conn = get_connection()
