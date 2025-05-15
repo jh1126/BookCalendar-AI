@@ -21,7 +21,7 @@ router = APIRouter()
 class QuestionModelConfig(BaseModel):
     newModelName: str
     epoch: int
-    batchSize: int
+    q_num: int
 
 # 경로 설정
 BASE_DIR = os.path.dirname(__file__)
@@ -32,7 +32,6 @@ MODEL_DIR = os.path.join(ROOT_DIR, 'models', 'question')
 ACTIVE_MODEL_PATH = os.path.join(ROOT_DIR, 'app', 'models', 'question', 'question_model_run.json')
 METRICS_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'question_model_metrics.json')
 
-# ===================== 내부 함수 =====================
 
 def load_data():
     with open(DATA_PATH, encoding="utf-8") as f:
@@ -44,19 +43,21 @@ def load_metrics():
             return json.load(f)
     return []
 
-def save_model_metrics(model_name: str, rouge_l: float):
+def save_model_metrics(model_name: str, rouge_l: float, q_num: int):
     try:
         metrics = load_metrics()
         updated = False
         for entry in metrics:
             if entry["model_name"] == model_name:
                 entry["ROUGE Score"] = round(rouge_l, 3)
+                entry["q_num"] = q_num
                 updated = True
                 break
         if not updated:
             metrics.append({
                 "model_name": model_name,
-                "ROUGE Score": round(rouge_l, 3)
+                "ROUGE Score": round(rouge_l, 3),
+                "q_num" : q_num
             })
         with open(METRICS_PATH, "w", encoding="utf-8") as f:
             json.dump(metrics, f, indent=4, ensure_ascii=False)
@@ -109,8 +110,8 @@ def train_question_model(config: QuestionModelConfig):
         evaluation_strategy="epoch",
         save_strategy="no",
         learning_rate=5e-5,
-        per_device_train_batch_size=config.batchSize,
-        per_device_eval_batch_size=config.batchSize,
+        per_device_train_batch_size=8,
+        per_device_eval_batch_size=8,
         num_train_epochs=config.epoch,
         weight_decay=0.01,
         save_total_limit=1,
@@ -146,7 +147,7 @@ def train_question_model(config: QuestionModelConfig):
     rouge_l_scores = [scorer.score(ref, pred)["rougeL"].fmeasure for ref, pred in zip(decoded_labels, decoded_preds)]
     avg_rouge_l = sum(rouge_l_scores) / len(rouge_l_scores)
 
-    save_model_metrics(config.newModelName, avg_rouge_l)
+    save_model_metrics(config.newModelName, avg_rouge_l, config.q_num)
     save_active_model(config.newModelName)
 
 # ===================== FastAPI 엔드포인트 =====================
