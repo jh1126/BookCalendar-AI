@@ -10,6 +10,9 @@ import os
 from fastapi.responses import JSONResponse
 import json
 
+#db
+from database import get_connection
+from datetime import datetime
 
 router = APIRouter()
 
@@ -101,12 +104,40 @@ def predict(input_data: TextInput):
 
     if intent == "질문":
         result = answer_book_question(text)
+
+        # 현재 날짜 (월 단위)
+        date_str = datetime.now().strftime("%Y-%m")
+
+        # DB 저장
+        conn = get_connection()
+        try:
+            with conn.cursor() as cursor:
+                sql = "INSERT INTO emotionData (date, input, output) VALUES (%s, %s, %s)"
+                cursor.execute(sql, (date_str, text, emotion))
+            conn.commit()
+        finally:
+            conn.close()
+        
         return JSONResponse(content={"message": result})
 
     elif intent == "추천":
         result = generate_recommendation(text)
-        return JSONResponse(content={"message": result})
         
+        # 현재 날짜 (월 단위)
+        date_str = datetime.now().strftime("%Y-%m")
+
+        # DB 저장
+        conn = get_connection()
+        try:
+            with conn.cursor() as cursor:
+                sql = "INSERT INTO emotionData (date, input, output) VALUES (%s, %s, %s)"
+                cursor.execute(sql, (date_str, text, emotion))
+            conn.commit()
+        finally:
+            conn.close()
+            
+        return JSONResponse(content={"message": result})
+    
 
     else:
         return JSONResponse(content={"message": "현재는 '질문' 또는 '추천' 의도만 지원됩니다."})
