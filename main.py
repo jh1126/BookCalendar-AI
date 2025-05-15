@@ -13,7 +13,7 @@ from data.log_error import log_error
 from app.routes import auto_train_settings
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.routes.auto_job import run_auto_training
-from app.routes.train_month import train_month_router
+from app.routes.set_train_month import set_train_month_router
 
 # Emotion
 from app.routes.emotion import (
@@ -64,7 +64,7 @@ def start_scheduler():
     scheduler.start()
 
 #자동화
-app.include_router(train_month_router)
+app.include_router(set_train_month_router)
 
 # 라우터 등록
 app.include_router(model_require.router, prefix="", tags=["all"])
