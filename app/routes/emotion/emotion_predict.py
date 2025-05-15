@@ -9,6 +9,9 @@ from fastapi.responses import JSONResponse
 import os
 import json
 
+#db
+from database import get_connection
+
 router = APIRouter()
 
 # 요청 데이터 형식 정의
