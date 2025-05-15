@@ -125,8 +125,7 @@ def adjust_postposition(keyword, template):
     return template.replace("(키워드)", keyword).replace("  ", " ").strip()
 
 # 질문 생성 함수 (개수 조절 포함)
-def generate_questions_from_template(paragraph, target_count=2):
-    summary = summarize_kobart(paragraph)
+def generate_questions_from_template(summary, target_count=2):
     keywords = extract_keywords_okt(summary)
 
     candidates = [q['template'] for q in template_data["questions"] if "(키워드)" in q['template']]
@@ -152,7 +151,23 @@ def predict(input_data: TextInput):
     paragraph = " ".join(input_data.paragraph.split())
     try:
         q_num = get_question_count()
-        questions = generate_questions_from_template(paragraph, target_count=q_num)
+
+        summary = summarize_kobart(paragraph)
+        questions = generate_questions_from_template(summary, target_count=q_num)
+
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        output_text = " / ".join(questions)
+        sql = "INSERT INTO questionData (date, input, output) VALUES (%s, %s, %s)"
+        values = (today, paragraph, output_text)
+
+        try:
+            conn = get_connection()
+            with conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(sql, values)
+        except Exception as db_err:
+            raise HTTPException(status_code=500, detail=f"DB 저장 실패: {db_err}")
+        
         return {f"question{i+1}": q for i, q in enumerate(questions)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
