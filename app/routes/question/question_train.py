@@ -21,7 +21,7 @@ router = APIRouter()
 class QuestionModelConfig(BaseModel):
     newModelName: str
     epoch: int
-    q_num: int
+    batchSize: int
 
 # 경로 설정
 BASE_DIR = os.path.dirname(__file__)
@@ -147,7 +147,7 @@ def train_question_model(config: QuestionModelConfig):
     rouge_l_scores = [scorer.score(ref, pred)["rougeL"].fmeasure for ref, pred in zip(decoded_labels, decoded_preds)]
     avg_rouge_l = sum(rouge_l_scores) / len(rouge_l_scores)
 
-    save_model_metrics(config.newModelName, avg_rouge_l, config.q_num)
+    save_model_metrics(config.newModelName, avg_rouge_l, q_num=config.batchSize)
     save_active_model(config.newModelName)
 
 # ===================== FastAPI 엔드포인트 =====================
