@@ -7,7 +7,7 @@ import os, json, torch, re, random
 router = APIRouter()
 
 # 요청 데이터 포맷
-class ParagraphRequest(BaseModel):
+class TextInput(BaseModel):
     text: str
 
 # 형태소 분석기 초기화
