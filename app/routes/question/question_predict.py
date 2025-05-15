@@ -23,7 +23,7 @@ MODELS_DIR = os.path.join(PROJECT_ROOT, "models", "question")
 
 # 템플릿 로딩
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
-    template_data = json.load(f)  # ✅ 리스트 구조에 맞게
+    template_data = json.load(f)  # 리스트 구조에 맞게
 
 # 모델 로딩 (요청 시점에 로딩되도록 처리)
 def load_model_and_tokenizer():
