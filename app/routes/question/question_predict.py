@@ -8,7 +8,7 @@ router = APIRouter()
 
 # 요청 데이터 포맷
 class TextInput(BaseModel):
-    text: str
+    paragraph: str
 
 # 형태소 분석기 초기화
 okt = Okt()
