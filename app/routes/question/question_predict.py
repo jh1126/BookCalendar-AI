@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from konlpy.tag import Okt
 import os, json, torch, re, random
+from datetime import datetime
+from .database import get_connection
 
 router = APIRouter()
 
