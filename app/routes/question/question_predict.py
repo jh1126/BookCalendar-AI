@@ -5,6 +5,7 @@ from konlpy.tag import Okt
 import os, json, torch, re, random
 from datetime import datetime
 from database import get_connection
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
