@@ -56,4 +56,17 @@ def predict(input_data: TextInput):
     text = input_data.text
     emotion, prob = predict_emotion(text)
 
+    # 현재 날짜 (월 단위)
+    date_str = datetime.now().strftime("%Y-%m")
+
+    # DB 저장
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = "INSERT INTO emotionData (date, input, output) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (date_str, text, emotion))
+        conn.commit()
+    finally:
+        conn.close()
+
     return JSONResponse(content={"emotion": emotion})
