@@ -156,21 +156,20 @@ def predict(input_data: TextInput):
 
         summary = summarize_kobart(paragraph)
         questions = generate_questions_from_template(summary, target_count=q_num)
-
+        
         today = datetime.utcnow().strftime("%Y-%m-%d")
         output_text = " / ".join(questions)
-        sql = "INSERT INTO questionData (date, input, output) VALUES (%s, %s, %s)"
-        values = (today, paragraph, output_text)
-
+        # DB 저장
+        conn = get_connection()
         try:
-            conn = get_connection()
-            with conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(sql, values)
-        except Exception as db_err:
-            raise HTTPException(status_code=500, detail=f"DB 저장 실패: {db_err}")
-        
-        return {f"question{i+1}": q for i, q in enumerate(questions)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+            with conn.cursor() as cursor:
+                sql = "INSERT INTO questionData (date, input, output) VALUES (%s, %s, %s)"
+                cursor.execute(sql, (date_str, paragraph, output_text))
+            conn.commit()
+        finally:
+            conn.close()
 
+        return JSONResponse(content={f"question{i+1}": q for i, q in enumerate(questions)})
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"질문 생성 중 오류 발생: {e}")
