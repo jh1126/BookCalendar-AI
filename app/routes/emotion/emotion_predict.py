@@ -51,9 +51,7 @@ def predict_emotion(text: str):
 @router.post("/predict_emotion")
 def predict(input_data: TextInput):
 
-    body = await request.body()
-    print("📥 실제 요청 본문(raw):", body.decode())
-    print("📦 파싱된 text:", input_data.text)
+    print("실제 요청 본문:",input_data.text)
     
     text = input_data.text
     emotion, prob = predict_emotion(text)
