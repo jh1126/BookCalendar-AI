@@ -13,7 +13,7 @@ def get_connection():
     
     return pymysql.connect(
         host='localhost',
-        user='bookcalendar123',
+        user='bookcalendar',
         password=load_password(pass_path),
         db='bookcalendar',
         port=3307,
