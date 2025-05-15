@@ -112,7 +112,7 @@ def predict(input_data: TextInput):
         conn = get_connection()
         try:
             with conn.cursor() as cursor:
-                sql = "INSERT INTO emotionData (date, input, output) VALUES (%s, %s, %s)"
+                sql = "INSERT INTO intentionData (date, input, output) VALUES (%s, %s, %s)"
                 cursor.execute(sql, (date_str, text, intent))
             conn.commit()
         finally:
@@ -130,7 +130,7 @@ def predict(input_data: TextInput):
         conn = get_connection()
         try:
             with conn.cursor() as cursor:
-                sql = "INSERT INTO intentData (date, input, output) VALUES (%s, %s, %s)"
+                sql = "INSERT INTO intentionData (date, input, output) VALUES (%s, %s, %s)"
                 cursor.execute(sql, (date_str, text, intent))
             conn.commit()
         finally:
