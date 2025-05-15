@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from pathlib import Path
 import os
 import json
 
@@ -13,11 +14,16 @@ class MonthConfig(BaseModel):
 
 @set_train_month_router.post("/set_train_month")
 def set_train_month(config: MonthConfig):
-    PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-    target_path = os.path.join(PROJECT_ROOT, "data", "train_data_month.json")
     try:
+        PROJECT_ROOT = Path(__file__).resolve().parents[2]
+        data_dir = PROJECT_ROOT / "data"
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+        target_path = data_dir / "train_data_month.json"
+
         with open(target_path, "w", encoding="utf-8") as f:
             json.dump(config.dict(), f, ensure_ascii=False, indent=4)
-        return {"message": "훈련 월 정보 저장 완료"}
+
+        return {"message": f"훈련 월 정보 저장 완료 (→ {target_path})"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"저장 실패: {e}")
