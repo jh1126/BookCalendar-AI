@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-import logging
+
 
 from app.routes import model_require
 from app.routes import model_score
@@ -84,14 +83,6 @@ app.include_router(question_version.router, prefix="/question", tags=["question"
 app.include_router(question_delete.router, prefix="/question", tags=["question"])
 app.include_router(question_predict.router, prefix="/question", tags=["question"])
 
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logging.error(f"❗ Request validation error: {exc}")
-    return JSONResponse(
-        status_code=422,
-        content={"detail": exc.errors(), "body": exc.body},
-    )
 
 
 # 스케줄러 실행
