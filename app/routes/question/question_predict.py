@@ -127,11 +127,13 @@ def generate_questions_from_template(paragraph):
     return questions
 
 # FastAPI 라우터
+# FastAPI 라우터
 @router.post("/predict_question")
-def predict(input_data: ParagraphRequest):
-    paragraph = " ".join(input_data.paragraph.split())
+def predict(input_data: TextInput):  # ✅ 여기 수정
+    paragraph = " ".join(input_data.text.split())  # ✅ input_data.paragraph → input_data.text
     try:
         questions = generate_questions_from_template(paragraph)
         return {"question1": questions[0], "question2": questions[1]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
