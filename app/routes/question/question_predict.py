@@ -157,7 +157,7 @@ def predict(input_data: TextInput):
         summary = summarize_kobart(paragraph)
         questions = generate_questions_from_template(summary, target_count=q_num)
         
-        today = datetime.utcnow().strftime("%Y-%m-%d")
+        date_str = datetime.now().strftime("%Y-%m-%d")
         output_text = " / ".join(questions)
         # DB 저장
         conn = get_connection()
