@@ -3,7 +3,7 @@ import os
 
 def load_password(path):
     with open(path, "r") as file:
-        token = file.read().strip()
+        password = file.read().strip()
     return password
     
 def get_connection():
