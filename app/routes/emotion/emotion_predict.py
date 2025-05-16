@@ -51,9 +51,6 @@ def predict_emotion(text: str):
     decoded_label = label_encoder.inverse_transform([pred_class])[0]
     return decoded_label, probs[0].tolist()
 
-# POST API 엔드포인트
-@router.post("/predict_emotion")
-from fastapi import Request
 
 @router.post("/predict_emotion")
 async def predict(request: Request):
@@ -62,7 +59,6 @@ async def predict(request: Request):
     
     json_data = await request.json()
     text = json_data.get("text")
-    ...
 
     emotion, prob = predict_emotion(text)
 
