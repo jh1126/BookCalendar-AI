@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from app.routes import model_require
 from app.routes import model_score
 from app.routes import error_request
+from app.routes import set_train_month
 
 # 오류 로거 import
 from data.log_error import log_error
@@ -71,6 +72,7 @@ app.include_router(model_require.router, prefix="", tags=["all"])
 app.include_router(model_score.router, prefix="", tags=["all"])
 app.include_router(auto_train_settings.router, prefix="", tags=["all"])
 app.include_router(error_request.router, prefix="", tags=["all"])
+app.include_router(set_train_month.router, prefix="", tags=["all"])
 
 app.include_router(emotion_train.router, prefix="/emotion", tags=["emotion"])
 app.include_router(emotion_version.router, prefix="/emotion", tags=["emotion"])
