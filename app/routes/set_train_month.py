@@ -1,4 +1,5 @@
 #DB에서 보내주는 자동화에 쓰일 달 저장 코드
+#and DB에 저장된 데이터 달 정보 보내주는 코
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -16,7 +17,8 @@ class IntentMonth(BaseModel):
 class EmotionMonth(BaseModel):
     emotionDataLoad: str
 
-# 공통 저장 함수
+
+#받은 달 데이터 저장 함수
 def save_json(category: str, data: dict):
     try:
         PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -40,6 +42,23 @@ def save_json(category: str, data: dict):
         raise HTTPException(status_code=500, detail=f"{category} 저장 실패: {e}")
 
 
+#저장된 달 데이터 보내는 함수
+def load_json(category: str):
+    try:
+        PROJECT_ROOT = Path(__file__).resolve().parents[2]
+        target_path = PROJECT_ROOT / "data" / category / "train_data_month.json"
+
+        if not target_path.exists():
+            raise HTTPException(status_code=404, detail=f"{category} 월 설정 파일이 없습니다.")
+
+        with open(target_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{category} 월 정보 로드 실패: {e}")
+
+
 @router.post("/set_question_month")
 def set_question_month(config: QuestionMonth):
     return save_json("question", config.dict())
@@ -51,4 +70,18 @@ def set_intent_month(config: IntentMonth):
 @router.post("/set_emotion_month")
 def set_emotion_month(config: EmotionMonth):
     return save_json("emotion", config.dict())
+
+
+
+@router.post("/get_question_month")
+def get_question_month():
+    return load_json("question")
+
+@router.post("/get_intent_month")
+def get_intent_month():
+    return load_json("intent")
+
+@router.post("/get_emotion_month")
+def get_emotion_month():
+    return load_json("emotion")
 
