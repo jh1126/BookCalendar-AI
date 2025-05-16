@@ -53,7 +53,7 @@ def predict_emotion(text: str):
 
 # POST API 엔드포인트
 @router.post("/predict_emotion")
-def predict(input_data: TextInput):
+def predict(input_data: TextInput, request: Request):
 
     # 📦 요청 전체 바디 출력 (디버깅용)
     try:
