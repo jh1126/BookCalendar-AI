@@ -55,6 +55,20 @@ def predict_emotion(text: str):
 @router.post("/predict_emotion")
 def predict(input_data: TextInput):
 
+    # 📦 요청 전체 바디 출력 (디버깅용)
+    try:
+        body_bytes = request._body  # 이미 파싱된 상태면 이 속성에 있음
+    except AttributeError:
+        body_bytes = None
+
+    if body_bytes:
+        print("📦 수신된 원본 바디 (request._body):", body_bytes.decode("utf-8"))
+    else:
+        # request._body가 없으면 다시 파싱 (FastAPI 내부에서 body 소모한 경우)
+        import asyncio
+        body_bytes = asyncio.run(request.body())
+        print("📦 수신된 원본 바디 (request.body()):", body_bytes.decode("utf-8"))
+
     print("실제 요청 본문:",input_data.text)
     
     text = input_data.text
