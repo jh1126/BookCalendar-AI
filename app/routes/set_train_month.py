@@ -5,9 +5,8 @@ import json
 
 router = APIRouter()
 
-# 공통 입력 모델
 class MonthData(BaseModel):
-    dataLoad: str  # 하나의 key만 필요함
+    dataLoad: str  # 월 정보 예: "2025-05"
 
 def save_month_data(category: str, value: str):
     try:
@@ -16,6 +15,13 @@ def save_month_data(category: str, value: str):
         data_dir.mkdir(parents=True, exist_ok=True)
 
         target_path = data_dir / "train_data_month.json"
+
+        # 기본 구조 생성
+        if not target_path.exists():
+            with open(target_path, "w", encoding="utf-8") as f:
+                json.dump({}, f, ensure_ascii=False, indent=4)
+
+        # 입력 값 저장
         with open(target_path, "w", encoding="utf-8") as f:
             json.dump({"dataLoad": value}, f, ensure_ascii=False, indent=4)
 
@@ -35,3 +41,4 @@ def set_emotion_month(config: MonthData):
 @router.post("/set_intent_month")
 def set_intent_month(config: MonthData):
     return save_month_data("intent", config.dataLoad)
+
