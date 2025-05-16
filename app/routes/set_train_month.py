@@ -1,5 +1,5 @@
 #DB에서 보내주는 자동화에 쓰일 달 저장 코드
-#and DB에 저장된 데이터 달 정보 보내주는 코
+#and DB에 저장된 데이터 달 정보 보내주는 코드
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
