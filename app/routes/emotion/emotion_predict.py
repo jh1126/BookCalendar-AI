@@ -53,7 +53,7 @@ def predict_emotion(text: str):
 
 
 @router.post("/predict_emotion")
-def predict(input_data: TextInput, request: Request):
+def predict(input_data: TextInput):
     
     text = input_data.text
     emotion, prob = predict_emotion(text)
