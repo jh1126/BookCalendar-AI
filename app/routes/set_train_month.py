@@ -73,15 +73,15 @@ def set_emotion_month(config: EmotionMonth):
 
 
 
-@router.post("/get_question_month")
+@router.get("/get_question_month")
 def get_question_month():
     return load_json("question")
 
-@router.post("/get_intent_month")
+@router.get("/get_intent_month")
 def get_intent_month():
     return load_json("intent")
 
-@router.post("/get_emotion_month")
+@router.get("/get_emotion_month")
 def get_emotion_month():
     return load_json("emotion")
 
