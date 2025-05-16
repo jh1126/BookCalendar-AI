@@ -56,6 +56,7 @@ def predict_emotion(text: str):
 def predict(input_data: TextInput):
     
     text = input_data.text
+    print(text)
     emotion, prob = predict_emotion(text)
 
     # 현재 날짜 (월 단위)
