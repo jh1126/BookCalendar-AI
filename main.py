@@ -64,7 +64,7 @@ def start_scheduler():
     scheduler.start()
 
 #자동화
-app.include_router(set_train_month_router)
+app.include_router(set_train_month_router, prefix="", tags=["all"])
 
 # 라우터 등록
 app.include_router(model_require.router, prefix="", tags=["all"])
