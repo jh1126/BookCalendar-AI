@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse
 from app.routes import model_require
 from app.routes import model_score
 from app.routes import error_request
-from app.routes import set_train_month
 
 # 오류 로거 import
 from data.log_error import log_error
@@ -14,7 +13,7 @@ from data.log_error import log_error
 from app.routes import auto_train_settings
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.routes.auto_job import run_auto_training
-from app.routes.set_train_month import set_train_month_router
+from app.routes.set_train_month import router as set_train_month_router
 
 # Emotion
 from app.routes.emotion import (
