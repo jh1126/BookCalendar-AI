@@ -152,6 +152,9 @@ def generate_questions_from_template(summary, target_count=2):
 @router.post("/predict_question")
 def predict(input_data: TextInput):
     paragraph = " ".join(input_data.paragraph.split())
+
+    if len(paragraph) <= 30:
+        raise HTTPException(status_code=422, detail="문장이 너무 적습니다.")
     try:
         q_num = get_question_count()
 
