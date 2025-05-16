@@ -1,3 +1,5 @@
+#DB에서 보내주는 자동화에 쓰일 달 저장 코드
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pathlib import Path
