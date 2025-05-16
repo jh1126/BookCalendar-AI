@@ -53,13 +53,9 @@ def predict_emotion(text: str):
 
 
 @router.post("/predict_emotion")
-async def predict(request: Request):
-    body_bytes = await request.body()
-    print("📦 수신된 원본 바디:", body_bytes.decode("utf-8"))
+def predict(input_data: TextInput, request: Request):
     
-    json_data = await request.json()
-    text = json_data.get("text")
-
+    text = input_data.text
     emotion, prob = predict_emotion(text)
 
     # 현재 날짜 (월 단위)
