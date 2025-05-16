@@ -53,11 +53,17 @@ def predict_emotion(text: str):
 
 # POST API 엔드포인트
 @router.post("/predict_emotion")
-def predict(input_data: TextInput, request: Request):
+from fastapi import Request
 
-    print(reauest.body)
+@router.post("/predict_emotion")
+async def predict(request: Request):
+    body_bytes = await request.body()
+    print("📦 수신된 원본 바디:", body_bytes.decode("utf-8"))
     
-    text = input_data.text
+    json_data = await request.json()
+    text = json_data.get("text")
+    ...
+
     emotion, prob = predict_emotion(text)
 
     # 현재 날짜 (월 단위)
