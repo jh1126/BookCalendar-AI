@@ -46,6 +46,5 @@ def delete_emotion_model(data: TextInput):
         shutil.rmtree(model_dir)  # 디렉터리 삭제
         delete_model_info_from_json(model_name) #json 정보 삭제
         
-    else:
-        raise HTTPException(status_code=404, detail=f"{model_name} 버전 모델이 존재하지 않습니다.")
+
 
