@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-
 from app.routes import model_require
 from app.routes import model_score
 from app.routes import error_request
@@ -63,7 +62,7 @@ def start_scheduler():
     )
     scheduler.start()
 
-#자동화
+# 자동화 관련 라우터 등록
 app.include_router(set_train_month_router, prefix="", tags=["all"])
 
 # 라우터 등록
@@ -71,7 +70,6 @@ app.include_router(model_require.router, prefix="", tags=["all"])
 app.include_router(model_score.router, prefix="", tags=["all"])
 app.include_router(auto_train_settings.router, prefix="", tags=["all"])
 app.include_router(error_request.router, prefix="", tags=["all"])
-app.include_router(set_train_month.router, prefix="", tags=["all"])
 
 app.include_router(emotion_train.router, prefix="/emotion", tags=["emotion"])
 app.include_router(emotion_version.router, prefix="/emotion", tags=["emotion"])
@@ -88,10 +86,9 @@ app.include_router(question_version.router, prefix="/question", tags=["question"
 app.include_router(question_delete.router, prefix="/question", tags=["question"])
 app.include_router(question_predict.router, prefix="/question", tags=["question"])
 
-
-
 # 스케줄러 실행
 start_scheduler()
+
 
 # 기본 경로 응답
 @app.get("/")
