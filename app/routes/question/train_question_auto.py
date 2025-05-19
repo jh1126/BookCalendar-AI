@@ -13,6 +13,7 @@ from transformers import (
 from datasets import Dataset
 from rouge_score import rouge_scorer
 import os, json, torch
+from app.database import get_connection
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:32"
 
@@ -28,7 +29,7 @@ class QuestionModelConfig(BaseModel):
 BASE_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', '..', '..'))
 
-DATA_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'processed', 'question_all_data.json')
+MONTH_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'train_data_month.json')
 MODEL_DIR = os.path.join(ROOT_DIR, 'models', 'question')
 ACTIVE_MODEL_PATH = os.path.join(ROOT_DIR, 'app', 'models', 'question', 'question_model_run.json')
 METRICS_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'question_model_metrics.json')
@@ -69,21 +70,33 @@ def save_active_model(model_name):
         pass
 
 
+#db에서 해당 달 데이터 불러오기
+def fetch_question_data_by_month(month: str):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = """
+                SELECT paragraph, summary
+                FROM questionData
+                WHERE date LIKE %s
+            """
+            cursor.execute(sql, (f"{month}%",))
+            return cursor.fetchall()
+    finally:
+        conn.close()
 
 def train_question_model_auto(config: QuestionModelConfig):
-    # 1. 자동화용 달 정보 불러오기
+    # 자동화 할 데이터 달 로
     with open(MONTH_PATH, encoding="utf-8") as f:
         month_info = json.load(f)
     target_month = month_info.get("questionDataLoad")
     if not target_month:
         raise RuntimeError("자동화 학습용 달 정보가 없습니다.")
     
-    # 2. 해당 월의 데이터 로드
-    data_path = os.path.join(DATA_DIR, f"{target_month}.json")
-    if not os.path.exists(data_path):
-        raise RuntimeError(f"{target_month}에 해당하는 데이터 파일이 존재하지 않습니다: {data_path}")
-    with open(data_path, encoding="utf-8") as f:
-        raw_data = json.load(f)
+    #  해당 월의 데이터 로드(DB에서)
+    raw_data = fetch_question_data_by_month(target_month)
+    if not raw_data:
+        raise RuntimeError(f"{target_month}에 해당하는 DB 데이터가 없습니다.")
 
     dataset = Dataset.from_list(raw_data).train_test_split(test_size=0.1)
 
@@ -166,6 +179,6 @@ def train_question_model_auto(config: QuestionModelConfig):
 def train_question_auto_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(train_question_model_auto, config)
-        return {"message": "자동화 질문 생성 모델 학습 시작됨"}
+        return {message : 질문생성자동화시작}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
