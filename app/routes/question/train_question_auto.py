@@ -179,6 +179,6 @@ def train_question_model_auto(config: QuestionModelConfig):
 def train_question_auto_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(train_question_model_auto, config)
-        return {message : 질문생성자동화시작}
+        return {message : "질문생성자동화시작" }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
