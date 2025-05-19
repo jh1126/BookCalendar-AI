@@ -20,7 +20,7 @@ def run_auto_training():
         }
         requests.post(f"{API_BASE}/question/train_question", json=payload)
         try:
-            res = requests.post(f"{API_BASE}/question/train_question", json=payload, timeout=10)
+            res = requests.post(f"{API_BASE}/question/train_question_auto", json=payload, timeout=10)
             print(f"[question] status: {res.status_code} | response: {res.text}")
         except Exception as e:
             print(f"[question] 요청 실패: {e}")
