@@ -36,6 +36,7 @@ from app.routes.question import (
     question_version,
     question_train,
     question_delete,
+    train_question_auto
 )
 
 # FastAPI 앱 생성
@@ -85,6 +86,7 @@ app.include_router(question_train.router, prefix="/question", tags=["question"])
 app.include_router(question_version.router, prefix="/question", tags=["question"])
 app.include_router(question_delete.router, prefix="/question", tags=["question"])
 app.include_router(question_predict.router, prefix="/question", tags=["question"])
+app.include_router(train_question_auto.router, prefix="/question", tags=["question"])
 
 # 스케줄러 실행
 start_scheduler()
