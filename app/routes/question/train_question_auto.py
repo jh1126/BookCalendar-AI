@@ -13,7 +13,7 @@ from transformers import (
 from datasets import Dataset
 from rouge_score import rouge_scorer
 import os, json, torch
-from app.database import get_connection
+from database import get_connection
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:32"
 
