@@ -168,7 +168,7 @@ def predict(input_data: TextInput):
         try:
             with conn.cursor() as cursor:
                 sql = "INSERT INTO questionData (date, input, output) VALUES (%s, %s, %s)"
-                cursor.execute(sql, (date_str, paragraph, output_text))
+                cursor.execute(sql, (date_str, paragraph, summary))
             conn.commit()
         finally:
             conn.close()
