@@ -42,9 +42,12 @@ def delete_emotion_model(data: TextInput):
     model_dir = os.path.join(
         os.path.dirname(__file__), '..', '..','..', 'models', 'emotion', model_name)
 
+    #모델 삭제
     if os.path.exists(model_dir):
         shutil.rmtree(model_dir)  # 디렉터리 삭제
-        delete_model_info_from_json(model_name) #json 정보 삭제
+
+    #모델 metrics 삭제
+    delete_model_info_from_json(model_name) #json 정보 삭제
         
 
 
