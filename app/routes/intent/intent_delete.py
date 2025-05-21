@@ -42,10 +42,11 @@ def delete_intent_model(data: TextInput):
     model_name = data.deleteModelName
     model_dir = os.path.join(
         os.path.dirname(__file__), '..', '..','..', 'models', 'intent', model_name)
-    
+
+    #모델 삭제
     if os.path.exists(model_dir):
         shutil.rmtree(model_dir)  # 디렉터리 삭제
-        delete_model_info_from_json(model_name) #json 정보 삭제
         
-    else:
-        raise HTTPException(status_code=404, detail=f"{model_name} 버전 모델이 존재하지 않습니다.")
+    #모델 metrics 삭제
+    delete_model_info_from_json(model_name) #json 정보 삭제
+        
