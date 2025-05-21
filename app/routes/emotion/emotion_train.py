@@ -91,7 +91,7 @@ def train_emotion_model(data: ModelConfig):
 
     optimizer, schedule = create_optimizer(
         init_lr=2e-5,
-        num_train_steps=(len(train_labels) // 16) * 5,  # num_train_steps 계산
+        num_train_steps=(len(train_labels) // 16) * 10,  # num_train_steps 계산
         num_warmup_steps=0
     )
     # 9. 모델 컴파일
@@ -101,7 +101,7 @@ def train_emotion_model(data: ModelConfig):
     model.fit(
         train_dataset.shuffle(1000).batch(16),
         validation_data=val_dataset.batch(16),
-        epochs=5
+        epochs=10
     )
     # Change id2label, label2id in model.config
     import re
