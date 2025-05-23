@@ -64,13 +64,13 @@ def answer_book_question(text: str):
     prompt = (
         f"사용자가 다음과 같은 질문을 했습니다:\n"
         f"\"{text}\"\n\n"
-        f"이 질문이 도서의 내용이나 주제, 인물, 감정 등과 관련된 질문이면 적합한 답변을 해주고 일상대화이면 적절한 답변을 해주세요."
+        f"이 질문이 도서의 내용이나 주제, 인물, 감정 등과 관련된 질문이면 적합한 답변을 해주고 또는 일상대화이면 적절한 답변을 해주세요."
     )
 
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "너는 도서에 대해 깊이 있는 답변을 제공하는 답변자야."},
+            {"role": "system", "content": "너는 일상대화도 답변하기도 하고 도서에 대해 깊이 있는 답변을 제공하는 답변자야."},
             {"role": "user", "content": prompt}
         ]
     )
