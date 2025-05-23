@@ -64,7 +64,7 @@ def answer_book_question(text: str):
     prompt = (
         f"사용자가 다음과 같은 질문을 했습니다:\n"
         f"\"{text}\"\n\n"
-        f"이 질문은 도서의 내용이나 주제, 인물, 감정 등과 관련된 질문이니까 적합한 답변을 해주세요."
+        f"이 질문이 도서의 내용이나 주제, 인물, 감정 등과 관련된 질문이면 적합한 답변을 해주고 일상대화이면 적절한 답변을 해주세요."
     )
 
     response = client.chat.completions.create(
@@ -82,7 +82,7 @@ def generate_recommendation(text: str):
     prompt = (
         f"사용자가 다음과 같은 요청을 보냈습니다:\n"
         f"\"{text}\"\n\n"
-        f"이 요청을 참고하여 사용자가 원하는 도서, 장르, 카테고리, 분위기, 스토리 등을 고려한 책을 세 권 추천해주고 추천이유도 설명해주세요."
+        f"이 요청을 참고하여 사용자가 원하는 도서, 장르, 카테고리, 분위기, 스토리 등을 고려한 책을 세 권 추천해주고 추천이유도 설명해주세요. 만약 요청이 일상대화라면 그에 맞는 답변을 해주세요."
     )
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
