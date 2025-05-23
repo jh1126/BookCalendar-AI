@@ -70,7 +70,7 @@ def answer_book_question(text: str):
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "너는 문학 작품에 대해 깊이 있는 답변을 제공하는 독서 토론 전문가야."},
+            {"role": "system", "content": "너는 도서에 대해 깊이 있는 답변을 제공하는 토론 전문가야."},
             {"role": "user", "content": prompt}
         ]
     )
