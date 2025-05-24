@@ -37,13 +37,15 @@ from app.routes.question import (
     question_train,
     question_delete,
     train_question_auto,
-    update_score  
+    update_score,
+    preview_score
 )
 
 
 # FastAPI 앱 생성
 app = FastAPI(title="AI API", version="1.0")
 app.include_router(update_score.router)
+app.include_router(preview_score.router)
 
 # 전역 예외 처리기 등록
 @app.exception_handler(Exception)
