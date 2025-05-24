@@ -5,5 +5,5 @@
   { "model_name": "question_model_v4", "ROUGE Score": 0.8685, "q_num": 2 },
   { "model_name": "question_model_v1", "ROUGE Score": 0.8644, "q_num": 2 },
   { "model_name": "q_model_9", "ROUGE Score": 0.4342, "q_num": 2 },
-  { "model_name": "1_model_7", "ROUGE Score": 0.4459, "q_num": 2 },
+  { "model_name": "1_model_7", "ROUGE Score": 0.4459, "q_num": 2 }
 ]
