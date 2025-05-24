@@ -90,9 +90,9 @@ def train_emotion_model(data: ModelConfig):
     model = TFAutoModelForSequenceClassification.from_pretrained(model_name, config=config)
 
     optimizer, schedule = create_optimizer(
-        init_lr=2e-5,
+        init_lr=3e-5,
         num_train_steps=(len(train_labels) // 32) * 5,  # num_train_steps 계산
-        num_warmup_steps=1513 #0
+        num_warmup_steps=756 #0
     )
     # 9. 모델 컴파일
     model.compile(optimizer=optimizer, loss=model.hf_compute_loss, metrics=['accuracy'])
