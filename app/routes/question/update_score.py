@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import os, json, torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
+from rouge_score import rouge_scorer
 import random
 
 router = APIRouter()
@@ -10,7 +10,7 @@ router = APIRouter()
 class ScoreUpdateRequest(BaseModel):
     model_name: str
 
-def evaluate_bleu_for_model(model, tokenizer, data_path, sample_size=100):
+def evaluate_rouge_for_model(model, tokenizer, data_path, sample_size=100):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
@@ -33,9 +33,9 @@ def evaluate_bleu_for_model(model, tokenizer, data_path, sample_size=100):
         decoded = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
         predictions.append(decoded)
 
-    smoothie = SmoothingFunction().method4
+    scorer = rouge_scorer.RougeScorer(['rougeL'], use_stemmer=True)
     scores = [
-        sentence_bleu([ref.split()], pred.split(), smoothing_function=smoothie)
+        scorer.score(ref, pred)["rougeL"].fmeasure
         for ref, pred in zip(references, predictions)
     ]
 
@@ -57,10 +57,10 @@ def update_model_score(data: ScoreUpdateRequest):
         raise HTTPException(status_code=500, detail=f"모델 로딩 실패: {e}")
 
     try:
-        bleu_score = evaluate_bleu_for_model(model, tokenizer, data_path)
-        bleu_score = round(bleu_score, 4)
+        rouge_score = evaluate_rouge_for_model(model, tokenizer, data_path)
+        rouge_score = round(rouge_score, 4)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"BLEU 평가 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"ROUGE 평가 실패: {e}")
 
     try:
         with open(metrics_path, "r", encoding="utf-8") as f:
@@ -69,7 +69,7 @@ def update_model_score(data: ScoreUpdateRequest):
         updated = False
         for m in model_data:
             if m["model_name"] == model_name:
-                m["ROUGE Score"] = bleu_score
+                m["ROUGE Score"] = rouge_score
                 updated = True
                 break
 
@@ -83,6 +83,6 @@ def update_model_score(data: ScoreUpdateRequest):
         raise HTTPException(status_code=500, detail=f"결과 저장 실패: {e}")
 
     return {
-        "message": f"모델 '{model_name}'의 BLEU Score가 {bleu_score}로 갱신되었습니다.",
-        "BLEU Score": bleu_score
+        "message": f"모델 '{model_name}'의 ROUGE Score가 {rouge_score}로 갱신되었습니다.",
+        "ROUGE Score": rouge_score
     }
