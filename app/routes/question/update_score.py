@@ -2,97 +2,55 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import os, json, torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from rouge_score import rouge_scorer
-import random
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
 router = APIRouter()
 
-
-
-class ScoreUpdateRequest(BaseModel):
+class PreviewRequest(BaseModel):
     model_name: str
+    sample_size: int = 3
 
-def evaluate_rouge_for_model(model, tokenizer, data_path, sample_size = 100):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-
-    try:
-        with open(data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except Exception as e:
-        raise RuntimeError(f"평가 데이터 로드 실패: {e}")
-
-    if len(data) > sample_size:
-        data = random.sample(data, sample_size)  # ✅ 랜덤 샘플링
-
-    inputs = [item["paragraph"] for item in data]
-    references = [item["summary"] for item in data]
-    predictions = []
-
-    for text in inputs:
-        input_ids = tokenizer.encode(text, return_tensors="pt", truncation=True, max_length=512).to(device)
-        outputs = model.generate(input_ids, max_length=128)
-        decoded = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
-        predictions.append(decoded)
-
-    scorer = rouge_scorer.RougeScorer(['rougeL'], use_stemmer=True)
-    scores = [
-        scorer.score(ref, pred)["rougeL"].fmeasure
-        for ref, pred in zip(references, predictions)
-    ]
-
-    return sum(scores) / len(scores)
-
-@router.post("/question/update_score")
-def update_model_score(data: ScoreUpdateRequest):
+@router.post("/question/preview_score")
+def preview_model_output(data: PreviewRequest):
     model_name = data.model_name
-    CURRENT_DIR = os.path.dirname(__file__)
-    PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", "..", ".."))
+    sample_size = data.sample_size
+
+    PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     model_path = os.path.join(PROJECT_ROOT, "models", "question", model_name)
     data_path = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_all_data.json")
-    metrics_path = os.path.join(PROJECT_ROOT, "data", "question", "question_model_metrics.json")
-
-    print(f"[DEBUG] 모델 경로: {model_path}")
-    print(f"[DEBUG] 데이터 경로: {data_path}")
-    print(f"[DEBUG] Metrics JSON 경로: {metrics_path}")
-
-
-
 
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_path)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+        model = AutoModelForSeq2SeqLM.from_pretrained(model_path).to("cpu")  # GPU 대신 CPU 사용
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"모델 로딩 실패: {e}")
 
     try:
-        rouge_score = evaluate_rouge_for_model(model, tokenizer, data_path)
-        rouge_score = round(rouge_score, 4)
+        with open(data_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        data = data[:sample_size]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"ROUGE 평가 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"데이터 로딩 실패: {e}")
 
-    try:
-        with open(metrics_path, "r", encoding="utf-8") as f:
-            model_data = json.load(f)
+    results = []
+    smoothie = SmoothingFunction().method4
+    for item in data:
+        paragraph = item.get("paragraph", "")
+        reference = item.get("summary", "")
+        inputs = tokenizer.encode(paragraph, return_tensors="pt", truncation=True, max_length=512).to(model.device)
+        outputs = model.generate(inputs, max_length=128)
+        prediction = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
 
-        updated = False
-        for m in model_data:
-            if m["model_name"] == model_name:
-                m["ROUGE Score"] = rouge_score
-                updated = True
-                break
+        bleu_score = sentence_bleu(
+            [reference.split()], prediction.split(), smoothing_function=smoothie
+        )
 
-        if not updated:
-            raise HTTPException(status_code=404, detail=f"모델 '{model_name}'을 metrics.json에서 찾을 수 없습니다.")
+        results.append({
+            "paragraph": paragraph[:100] + ("..." if len(paragraph) > 100 else ""),
+            "prediction": prediction,
+            "reference": reference,
+            "BLEU": round(bleu_score, 4)
+        })
 
-        with open(metrics_path, "w", encoding="utf-8") as f:
-            json.dump(model_data, f, ensure_ascii=False, indent=2)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"결과 저장 실패: {e}")
-
-    return {
-        "message": f"모델 '{model_name}'의 ROUGE Score가 {rouge_score}로 갱신되었습니다.",
-        "ROUGE Score": rouge_score
-    }
+    return {"samples": results}
 
