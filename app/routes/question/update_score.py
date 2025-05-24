@@ -6,6 +6,8 @@ from rouge_score import rouge_scorer
 
 router = APIRouter()
 
+
+
 class ScoreUpdateRequest(BaseModel):
     model_name: str
 
@@ -40,9 +42,18 @@ def evaluate_rouge_for_model(model, tokenizer, data_path):
 @router.post("/question/update_score")
 def update_model_score(data: ScoreUpdateRequest):
     model_name = data.model_name
-    model_path = os.path.join("models", "question", model_name)
-    data_path = os.path.join("data", "question", "processed", "question_data.json")
-    metrics_path = os.path.join("data", "question", "question_model_metrics.json")
+    CURRENT_DIR = os.path.dirname(__file__)
+    PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", "..", ".."))
+    model_path = os.path.join(PROJECT_ROOT, "models", "question", model_name)
+    data_path = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
+    metrics_path = os.path.join(PROJECT_ROOT, "data", "question", "question_model_metrics.json")
+
+    print(f"[DEBUG] 모델 경로: {model_path}")
+    print(f"[DEBUG] 데이터 경로: {data_path}")
+    print(f"[DEBUG] Metrics JSON 경로: {metrics_path}")
+
+
+
 
     try:
         tokenizer = T5Tokenizer.from_pretrained(model_path)
