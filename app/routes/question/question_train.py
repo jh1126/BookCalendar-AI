@@ -100,7 +100,7 @@ def train_question_model(config: QuestionModelConfig):
         train_dataset=tokenized["train"],
         tokenizer=tokenizer,
         data_collator=collator,
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
     )
 
     trainer.train()
