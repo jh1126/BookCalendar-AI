@@ -22,7 +22,7 @@ def evaluate_rouge_for_model(model, tokenizer, data_path):
         raise RuntimeError(f"평가 데이터 로드 실패: {e}")
 
     inputs = [item["paragraph"] for item in data]
-    references = [item["target_text"] for item in data]
+    references = [item["summary"] for item in data]
     predictions = []
 
     for text in inputs:
