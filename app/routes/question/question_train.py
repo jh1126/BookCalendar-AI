@@ -10,20 +10,16 @@ from transformers import (
     DataCollatorForSeq2Seq
 )
 from datasets import Dataset
-from rouge_score import rouge_scorer
-import os, json, torch
-
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:32"
+import os, json, torch, random
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
 router = APIRouter()
 
-# 요청 데이터 포맷
 class QuestionModelConfig(BaseModel):
     newModelName: str
     epoch: int
     batchSize: int
 
-# 경로 설정
 BASE_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', '..', '..'))
 
@@ -43,35 +39,13 @@ def load_metrics():
             return json.load(f)
     return []
 
-def save_model_metrics(model_name: str, rouge_l: float, q_num: int):
-    try:
-        metrics = load_metrics()
-        updated = False
-        for entry in metrics:
-            if entry["model_name"] == model_name:
-                entry["ROUGE Score"] = round(rouge_l, 3)
-                entry["q_num"] = q_num
-                updated = True
-                break
-        if not updated:
-            metrics.append({
-                "model_name": model_name,
-                "ROUGE Score": round(rouge_l, 3),
-                "q_num" : q_num
-            })
-        with open(METRICS_PATH, "w", encoding="utf-8") as f:
-            json.dump(metrics, f, indent=4, ensure_ascii=False)
-    except:
-        pass  # 저장 오류 무시
-
 def save_active_model(model_name):
     try:
         with open(ACTIVE_MODEL_PATH, "w", encoding="utf-8") as f:
             json.dump([{"model_name": model_name}], f, indent=4, ensure_ascii=False)
     except:
-        pass  # 저장 오류 무시
+        pass
 
-# ===================== 메인 학습 함수 =====================
 
 def train_question_model(config: QuestionModelConfig):
     raw_data = load_data()
@@ -107,11 +81,10 @@ def train_question_model(config: QuestionModelConfig):
 
     training_args = TrainingArguments(
         output_dir=save_path,
-        evaluation_strategy="epoch",
+        evaluation_strategy="no",
         save_strategy="no",
         learning_rate=5e-5,
         per_device_train_batch_size=8,
-        per_device_eval_batch_size=8,
         num_train_epochs=config.epoch,
         weight_decay=0.01,
         save_total_limit=1,
@@ -124,7 +97,6 @@ def train_question_model(config: QuestionModelConfig):
         model=model,
         args=training_args,
         train_dataset=tokenized["train"],
-        eval_dataset=tokenized["test"],
         tokenizer=tokenizer,
         data_collator=collator,
     )
@@ -134,23 +106,57 @@ def train_question_model(config: QuestionModelConfig):
     model.save_pretrained(save_path)
     tokenizer.save_pretrained(save_path)
 
-    # ROUGE 평가 (rouge_score 이용)
-    scorer = rouge_scorer.RougeScorer(['rougeL'], use_stemmer=True)
-    preds = trainer.predict(tokenized["test"])
-
-    decoded_preds = tokenizer.batch_decode(preds.predictions[:20], skip_special_tokens=True)
-    decoded_labels = tokenizer.batch_decode(preds.label_ids[:20], skip_special_tokens=True)
-
-    decoded_preds = [pred.strip() for pred in decoded_preds]
-    decoded_labels = [label.strip() for label in decoded_labels]
-
-    rouge_l_scores = [scorer.score(ref, pred)["rougeL"].fmeasure for ref, pred in zip(decoded_labels, decoded_preds)]
-    avg_rouge_l = sum(rouge_l_scores) / len(rouge_l_scores)
-
-    save_model_metrics(config.newModelName, avg_rouge_l, q_num=config.batchSize)
     save_active_model(config.newModelName)
 
-# ===================== FastAPI 엔드포인트 =====================
+    # ===== BLEU 평가 및 저장 =====
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
+
+    try:
+        eval_data = raw_data
+        if len(eval_data) > 100:
+            eval_data = random.sample(eval_data, 100)
+
+        inputs = [item["paragraph"] for item in eval_data]
+        references = [item["summary"] for item in eval_data]
+        predictions = []
+
+        for text in inputs:
+            input_ids = tokenizer.encode(text, return_tensors="pt", truncation=True, max_length=512).to(device)
+            outputs = model.generate(input_ids, max_length=128)
+            decoded = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+            predictions.append(decoded)
+
+        smoothie = SmoothingFunction().method4
+        scores = [
+            sentence_bleu([ref.split()], pred.split(), smoothing_function=smoothie)
+            for ref, pred in zip(references, predictions)
+        ]
+
+        bleu_score = round(sum(scores) / len(scores), 4)
+
+        metrics = load_metrics()
+        updated = False
+        for entry in metrics:
+            if entry["model_name"] == config.newModelName:
+                entry["BLEU Score"] = bleu_score
+                entry["q_num"] = config.batchSize
+                updated = True
+                break
+        if not updated:
+            metrics.append({
+                "model_name": config.newModelName,
+                "BLEU Score": bleu_score,
+                "q_num": config.batchSize
+            })
+
+        with open(METRICS_PATH, "w", encoding="utf-8") as f:
+            json.dump(metrics, f, indent=4, ensure_ascii=False)
+
+    except Exception as e:
+        print(f"[BLEU 평가 실패] {e}")
+
 
 @router.post("/train_question")
 def train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
