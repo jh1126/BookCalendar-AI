@@ -91,7 +91,7 @@ def train_question_model(config: QuestionModelConfig):
         save_total_limit=1,
         eval_accumulation_steps=1,
         fp16=False,
-        report_to="none"
+        report_to="none",
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         greater_is_better=False       
