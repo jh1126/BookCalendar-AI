@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import os, json, torch
-from transformers import T5Tokenizer, T5ForConditionalGeneration
+from transformers import AutoTokenizer, T5ForConditionalGeneration
 from rouge_score import rouge_scorer
 
 router = APIRouter()
@@ -56,7 +56,7 @@ def update_model_score(data: ScoreUpdateRequest):
 
 
     try:
-        tokenizer = T5Tokenizer.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
         model = T5ForConditionalGeneration.from_pretrained(model_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"모델 로딩 실패: {e}")
