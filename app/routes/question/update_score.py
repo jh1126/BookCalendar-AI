@@ -57,7 +57,7 @@ def update_model_score(data: ScoreUpdateRequest):
 
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+        model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"모델 로딩 실패: {e}")
 
