@@ -45,7 +45,7 @@ def update_model_score(data: ScoreUpdateRequest):
     CURRENT_DIR = os.path.dirname(__file__)
     PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", "..", ".."))
     model_path = os.path.join(PROJECT_ROOT, "models", "question", model_name)
-    data_path = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
+    data_path = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_all_data.json")
     metrics_path = os.path.join(PROJECT_ROOT, "data", "question", "question_model_metrics.json")
 
     print(f"[DEBUG] 모델 경로: {model_path}")
