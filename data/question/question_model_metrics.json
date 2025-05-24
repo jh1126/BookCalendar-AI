@@ -1,19 +1,10 @@
-[  { "model_name": "test+model+6", "ROUGE Score": 0.812, "q_num": 2 },
+[
   { "model_name": "question_model_v5", "ROUGE Score": 0.845, "q_num": 2 },
-  { "model_name": "1_model_7", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "test_model_9", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "test+model+2", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "test_model_14", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "test_model_13", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "test_model_12", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "test_model_11", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "test_model_10", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "test+model+1", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "question_model_2", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "question_model_v4", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "question_model_v3", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "question_model_v1", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "q_model_9", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "q_model_5", "ROUGE Score": 0.62, "q_num": 2 },
-  { "model_name" : "1_model_8", "ROUGE Score": 0.62, "q_num": 2 }
+  { "model_name": "1_model_7", "ROUGE Score": 0.62, "q_num": 8 },
+  { "model_name" : "question_model_v4", "ROUGE Score": 0.62, "q_num": 8 },
+  { "model_name" : "question_model_v3", "ROUGE Score": 0.62, "q_num": 8 },
+  { "model_name" : "question_model_v1", "ROUGE Score": 0.62, "q_num": 8 },
+  { "model_name" : "q_model_9", "ROUGE Score": 0.62, "q_num": 4 },
+  { "model_name" : "test_model_13", "ROUGE Score": 0.62, "q_num": 8 },
+  { "model_name" : "1_model_8", "ROUGE Score": 0.62, "q_num": 8 }
 ]
