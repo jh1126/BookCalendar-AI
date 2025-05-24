@@ -16,7 +16,7 @@ def preview_model_output(data: PreviewRequest):
 
     PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     model_path = os.path.join(PROJECT_ROOT, "models", "question", model_name)
-    data_path = os.path.join(PROJECT_ROOT, "data", "question", "question_all_data.json")
+    data_path = os.path.join(PROJECT_ROOT, "data", "question","processed", "question_all_data.json")
 
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_path)
