@@ -91,17 +91,17 @@ def train_emotion_model(data: ModelConfig):
 
     optimizer, schedule = create_optimizer(
         init_lr=2e-5,
-        num_train_steps=(len(train_labels) // 16) * 10,  # num_train_steps 계산
-        num_warmup_steps=0
+        num_train_steps=(len(train_labels) // 32) * 5,  # num_train_steps 계산
+        num_warmup_steps=1513 #0
     )
     # 9. 모델 컴파일
     model.compile(optimizer=optimizer, loss=model.hf_compute_loss, metrics=['accuracy'])
 
     # 10. 모델 훈련
     model.fit(
-        train_dataset.shuffle(1000).batch(16),
-        validation_data=val_dataset.batch(16),
-        epochs=10
+        train_dataset.shuffle(1000).batch(32),
+        validation_data=val_dataset.batch(32),
+        epochs=5
     )
     # Change id2label, label2id in model.config
     import re
