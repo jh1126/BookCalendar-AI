@@ -1,6 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
+from transformers import EarlyStoppingCallback
 
 from transformers import (
     BartForConditionalGeneration,
@@ -84,7 +85,7 @@ def train_question_model(config: QuestionModelConfig):
         evaluation_strategy="no",
         save_strategy="no",
         learning_rate=5e-5,
-        per_device_train_batch_size=8,
+        per_device_train_batch_size=4,
         num_train_epochs=config.epoch,
         weight_decay=0.01,
         save_total_limit=1,
@@ -99,6 +100,7 @@ def train_question_model(config: QuestionModelConfig):
         train_dataset=tokenized["train"],
         tokenizer=tokenizer,
         data_collator=collator,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)
     )
 
     trainer.train()
