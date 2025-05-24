@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import os, json, torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from rouge_score import rouge_scorer
+import random
 
 router = APIRouter()
 
@@ -11,7 +12,7 @@ router = APIRouter()
 class ScoreUpdateRequest(BaseModel):
     model_name: str
 
-def evaluate_rouge_for_model(model, tokenizer, data_path):
+def evaluate_rouge_for_model(model, tokenizer, data_path, sample_size = 100):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
@@ -20,6 +21,9 @@ def evaluate_rouge_for_model(model, tokenizer, data_path):
             data = json.load(f)
     except Exception as e:
         raise RuntimeError(f"평가 데이터 로드 실패: {e}")
+
+    if len(data) > sample_size:
+        data = random.sample(data, sample_size)  # ✅ 랜덤 샘플링
 
     inputs = [item["paragraph"] for item in data]
     references = [item["summary"] for item in data]
