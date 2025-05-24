@@ -29,7 +29,6 @@ MODEL_DIR = os.path.join(ROOT_DIR, 'models', 'question')
 ACTIVE_MODEL_PATH = os.path.join(ROOT_DIR, 'app', 'models', 'question', 'question_model_run.json')
 METRICS_PATH = os.path.join(ROOT_DIR, 'data', 'question', 'question_model_metrics.json')
 
-
 def load_data():
     with open(DATA_PATH, encoding="utf-8") as f:
         return json.load(f)
@@ -46,7 +45,6 @@ def save_active_model(model_name):
             json.dump([{"model_name": model_name}], f, indent=4, ensure_ascii=False)
     except:
         pass
-
 
 def train_question_model(config: QuestionModelConfig):
     raw_data = load_data()
@@ -82,10 +80,11 @@ def train_question_model(config: QuestionModelConfig):
 
     training_args = TrainingArguments(
         output_dir=save_path,
-        evaluation_strategy="epoch",
+        evaluation_strategy="epoch",  # Fixed
         save_strategy="epoch",
         learning_rate=5e-5,
-        per_device_train_batch_size=4,
+        per_device_train_batch_size=config.batchSize,
+        per_device_eval_batch_size=config.batchSize,
         num_train_epochs=config.epoch,
         weight_decay=0.01,
         save_total_limit=1,
@@ -94,13 +93,14 @@ def train_question_model(config: QuestionModelConfig):
         report_to="none",
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
-        greater_is_better=False       
+        greater_is_better=False
     )
 
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized["train"],
+        eval_dataset=tokenized["test"],
         tokenizer=tokenizer,
         data_collator=collator,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
@@ -162,10 +162,10 @@ def train_question_model(config: QuestionModelConfig):
     except Exception as e:
         print(f"[BLEU 평가 실패] {e}")
 
-
 @router.post("/train_question")
 def train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(train_question_model, config)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
