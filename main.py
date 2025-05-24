@@ -36,8 +36,10 @@ from app.routes.question import (
     question_version,
     question_train,
     question_delete,
-    train_question_auto
+    train_question_auto,
+    update_score  
 )
+app.include_router(update_score.router)
 
 # FastAPI 앱 생성
 app = FastAPI(title="AI API", version="1.0")
