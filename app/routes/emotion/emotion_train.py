@@ -140,7 +140,7 @@ def train_emotion_model(data: ModelConfig):
     accuracy = report['accuracy']
 
     #모델 요구사항 저장(버전 이름, 성능지표f1_score)
-    save_model_metrics(model_name2, f1_score)
+    save_model_metrics(model_name2, accuracy)
     
     return accuracy, f1_score
 
@@ -157,12 +157,12 @@ def load_metrics():
     return []
     
 # 성능 기록 추가 및 저장 (버전이름, f1_score)
-def save_model_metrics(model_name: str, f1_score: float): 
+def save_model_metrics(model_name: str, accuracy: float): 
     metrics = load_metrics()
     
     metrics.append({
         "model_name": model_name,
-        "f1_score": f1_score
+        "f1_score": accuracy
     })
 
     with open(METRICS_FILE, "w") as f:
