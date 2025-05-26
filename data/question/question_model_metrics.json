@@ -6,6 +6,6 @@
   { "model_name": "question_model_v5", "ROUGE Score": 0.872, "q_num": 2 },
   { "model_name": "question_model_v6", "ROUGE Score": 0.9033, "q_num": 2 },
   { "model_name": "question_model_v7", "ROUGE Score": 0.8914, "q_num": 2 },
-  { "model_name": "question_model_v8", "ROUGE Score": 0.8907, "q_num": 2 }
+  { "model_name": "question_model_v8", "ROUGE Score": 0.8907, "q_num": 2 },
   { "model_name": "250526_question_model", "ROUGE Score": 0.0, "q_num": 2 }
 ]
