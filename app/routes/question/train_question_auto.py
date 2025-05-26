@@ -2,6 +2,7 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
+from datetime import datetime
 
 from transformers import (
     BartForConditionalGeneration,
@@ -100,7 +101,8 @@ def train_question_model_auto(config: QuestionModelConfig):
 
     dataset = Dataset.from_list(raw_data).train_test_split(test_size=0.1)
 
-    model_name_or_path = "digit82/kobart-summarization"
+    today_str = datetime.now().strftime("%Y%m%d")
+    model_name = f"{today_str}_question_model"
     tokenizer = PreTrainedTokenizerFast.from_pretrained(model_name_or_path)
     model = BartForConditionalGeneration.from_pretrained(model_name_or_path)
 
@@ -125,7 +127,7 @@ def train_question_model_auto(config: QuestionModelConfig):
     tokenized = dataset.map(preprocess, batched=True)
     collator = DataCollatorForSeq2Seq(tokenizer, model)
 
-    save_path = os.path.join(MODEL_DIR, config.newModelName)
+    save_path = os.path.join(MODEL_DIR, model_name)
     os.makedirs(save_path, exist_ok=True)
 
     training_args = TrainingArguments(
@@ -170,15 +172,17 @@ def train_question_model_auto(config: QuestionModelConfig):
     rouge_l_scores = [scorer.score(ref, pred)["rougeL"].fmeasure for ref, pred in zip(decoded_labels, decoded_preds)]
     avg_rouge_l = sum(rouge_l_scores) / len(rouge_l_scores)
 
-    save_model_metrics(config.newModelName, avg_rouge_l, q_num=config.batchSize)
-    save_active_model(config.newModelName)
+    save_model_metrics(model_name, avg_rouge_l, q_num=config.batchSize)
+    save_active_model(model_name)
+
 
 
 
 @router.post("/train_question_auto")
-def train_question_auto_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
+def train_question_auto_api(background_tasks: BackgroundTasks):
+    dummy_config = QuestionModelConfig(epoch=5, batchSize=16, newModelName="")  # 값은 내부에서 사용 X
     try:
-        background_tasks.add_task(train_question_model_auto, config)
-        return { "message" : "질문생성자동화시작" }
+        background_tasks.add_task(train_question_model_auto, dummy_config)
+        return { "message" : "질문 생성 자동화 시작" }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
