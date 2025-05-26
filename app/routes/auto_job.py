@@ -18,7 +18,6 @@ def run_auto_training():
             "epoch": 20,
             "batchSize": 8
         }
-        requests.post(f"{API_BASE}/question/train_question", json=payload)
         try:
             res = requests.post(f"{API_BASE}/question/train_question_auto", json=payload, timeout=10)
             print(f"[question] status: {res.status_code} | response: {res.text}")
