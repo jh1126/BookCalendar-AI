@@ -44,7 +44,7 @@ def load_model_and_tokenizer():
         raise HTTPException(status_code=500, detail=f"모델 디렉토리 {model_path}에 HuggingFace 모델이 없습니다.")
 
     tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = BartForConditionalGeneration.from_pretrained(model_path)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_path, trust_remote_code=True)
 
 
     return tokenizer, model
