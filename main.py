@@ -40,7 +40,7 @@ from app.routes.question import (
     update_score,
 )
 from app.routes.question.preview_score import router as preview_score_router
-from app.routes.question.continue_train_question import router as continue_train_question_route
+from app.routes.question.continue_train_question import router as continue_train_question_router
 
 
 # FastAPI 앱 생성
