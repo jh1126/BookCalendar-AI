@@ -7,6 +7,7 @@ from datetime import datetime
 from database import get_connection
 from fastapi.responses import JSONResponse
 import traceback
+from transformers import PreTrainedTokenizerFast
 
 
 router = APIRouter()
