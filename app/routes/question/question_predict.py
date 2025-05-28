@@ -6,6 +6,8 @@ import os, json, torch, re, random
 from datetime import datetime
 from database import get_connection
 from fastapi.responses import JSONResponse
+import traceback
+
 
 router = APIRouter()
 
@@ -177,4 +179,5 @@ def predict(input_data: TextInput):
         return JSONResponse(content={f"question{i+1}": q for i, q in enumerate(questions)})
 
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"질문 생성 중 오류 발생: {e}")
