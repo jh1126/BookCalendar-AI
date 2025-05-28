@@ -46,7 +46,7 @@ def load_model_and_tokenizer():
     if not os.path.exists(os.path.join(model_path, "config.json")):
         raise HTTPException(status_code=500, detail=f"모델 디렉토리 {model_path}에 HuggingFace 모델이 없습니다.")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
 
 
