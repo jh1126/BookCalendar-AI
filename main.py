@@ -38,9 +38,9 @@ from app.routes.question import (
     question_delete,
     train_question_auto,
     update_score,
-    continue_train_question
 )
 from app.routes.question.preview_score import router as preview_score_router
+from app.routes.question.continue_train_question import router as continue_train_question_route
 
 
 # FastAPI 앱 생성
@@ -93,7 +93,7 @@ app.include_router(question_version.router, prefix="/question", tags=["question"
 app.include_router(question_delete.router, prefix="/question", tags=["question"])
 app.include_router(question_predict.router, prefix="/question", tags=["question"])
 app.include_router(train_question_auto.router, prefix="/question", tags=["question"])
-app.include_router(continue_train_question, prefix="/question", tags=["Question Model Training"])
+app.include_router(continue_train_question, prefix="/question", tags=["question"])
 
 # 스케줄러 실행
 start_scheduler()
