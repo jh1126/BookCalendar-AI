@@ -93,7 +93,7 @@ app.include_router(question_version.router, prefix="/question", tags=["question"
 app.include_router(question_delete.router, prefix="/question", tags=["question"])
 app.include_router(question_predict.router, prefix="/question", tags=["question"])
 app.include_router(train_question_auto.router, prefix="/question", tags=["question"])
-app.include_router(continue_train_question, prefix="/question", tags=["question"])
+app.include_router(continue_train_question_router, prefix="/question", tags=["question"])
 
 # 스케줄러 실행
 start_scheduler()
