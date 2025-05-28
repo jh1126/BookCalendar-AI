@@ -38,7 +38,7 @@ from app.routes.question import (
     question_delete,
     train_question_auto,
     update_score,
-    plus_trian
+    plus_train
 )
 from app.routes.question.preview_score import router as preview_score_router
 
