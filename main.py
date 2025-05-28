@@ -38,7 +38,7 @@ from app.routes.question import (
     question_delete,
     train_question_auto,
     update_score,
-    train_question_router
+    plus_trian
 )
 from app.routes.question.preview_score import router as preview_score_router
 
@@ -93,7 +93,7 @@ app.include_router(question_version.router, prefix="/question", tags=["question"
 app.include_router(question_delete.router, prefix="/question", tags=["question"])
 app.include_router(question_predict.router, prefix="/question", tags=["question"])
 app.include_router(train_question_auto.router, prefix="/question", tags=["question"])
-app.include_router(train_question_router, prefix="/question", tags=["Question Model Training"])
+app.include_router(plus_train, prefix="/question", tags=["Question Model Training"])
 
 # 스케줄러 실행
 start_scheduler()
