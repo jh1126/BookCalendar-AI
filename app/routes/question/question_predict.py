@@ -78,8 +78,9 @@ def get_sbert_embedding(text):
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512).to("cuda")
     with torch.no_grad():
         outputs = sbert_model(**inputs)
-    cls_emb = outputs.last_hidden_state[:, 0, :]
-    return F.normalize(cls_emb, p=2, dim=1).squeeze(0)
+    cls_emb = outputs.last_hidden_state[:, 0, :]  # shape: (1, hidden_dim)
+    return F.normalize(cls_emb, p=2, dim=1).squeeze(0)  # shape: (hidden_dim,), stays on GPU
+
 
 # 1. (키워드) 제거한 템플릿 문장 리스트
 template_texts_clean = [
@@ -188,17 +189,21 @@ def extract_keywords_okt_with_filter(text, sbert_model=None, top_k=10, threshold
     
     freq_sorted = Counter(filtered_nouns).most_common()
     if sbert_model:
-        result = []
-        for kw, _ in freq_sorted:
-            kw_emb = get_sbert_embedding(kw)
-            scores = []
-            for ref_list in category_keywords.values():
-                ref_embs = [get_sbert_embedding(r) for r in ref_list]
-                ref_tensor = torch.stack(ref_embs)
-                sim = torch.matmul(kw_emb, ref_tensor.T).max().item()
-                scores.append(sim)
-            if max(scores) >= threshold:
-                result.append((kw, max(scores)))
+    result = []
+    for kw, _ in freq_sorted:
+        kw_emb = get_sbert_embedding(kw)  # kw_emb는 GPU
+
+        scores = []
+        for ref_list in category_keywords.values():
+            ref_embs = [get_sbert_embedding(r) for r in ref_list]
+            ref_tensor = torch.stack(ref_embs).to(kw_emb.device)  # ✅ 디바이스 일치시킴
+
+            sim = torch.matmul(kw_emb, ref_tensor.T).max().item()
+            scores.append(sim)
+
+        if max(scores) >= threshold:
+            result.append((kw, max(scores)))
+
         result = sorted(result, key=lambda x: x[1], reverse=True)[:top_k]
         final_keywords = [kw for kw, _ in result]
     else:
