@@ -3,7 +3,10 @@ from konlpy.tag import Okt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from collections import Counter, defaultdict
-from transformers import AutoModel, AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import (
+    AutoModel, AutoTokenizer, AutoModelForSeq2SeqLM,
+    PreTrainedTokenizerFast, BartForConditionalGeneration
+)
 from pydantic import BaseModel
 import torch.nn.functional as F
 import re, random, json, torch, os
