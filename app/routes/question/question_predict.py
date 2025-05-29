@@ -1,136 +1,151 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from konlpy.tag import Okt
 from fastapi.responses import JSONResponse
-import os, json, torch, re, random, traceback
-from collections import defaultdict
+from konlpy.tag import Okt
+from collections import defaultdict, Counter
 from datetime import datetime
+import os, json, torch, re, traceback, random
+import torch.nn.functional as F
+
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AutoModel
 from database import get_connection
 
 router = APIRouter()
 
+# 입력 모델
 class TextInput(BaseModel):
     paragraph: str
 
-okt = Okt()
-
+# 경로 설정
 CURRENT_DIR = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", "..", ".."))
-
+KOBART_PATH = os.path.join(PROJECT_ROOT, "models", "kobart_summary_model_v6")
+SBERT_MODEL_NAME = "snunlp/KR-SBERT-V40K-klueNLI-augSTS"
 TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
-CONFIG_PATH = os.path.join(PROJECT_ROOT, "app", "models", "question", "question_model_run.json")
-METRICS_PATH = os.path.join(PROJECT_ROOT, "data", "question", "question_model_metrics.json")
-MODELS_DIR = os.path.join(PROJECT_ROOT, "models", "question")
 
+# 모델 불러오기
+kobart_tokenizer = AutoTokenizer.from_pretrained(KOBART_PATH)
+kobart_model = AutoModelForSeq2SeqLM.from_pretrained(KOBART_PATH)
+kobart_model.eval()
+
+sbert_tokenizer = AutoTokenizer.from_pretrained(SBERT_MODEL_NAME)
+sbert_model = AutoModel.from_pretrained(SBERT_MODEL_NAME)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+sbert_model.to(device).eval()
+
+# 템플릿 불러오기
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
     template_data = json.load(f)
 
-category_keywords = {
-    "감정탐구": ["감정", "느낌", "마음", "상실", "기쁨", "분노"],
-    "관점전환": ["시선", "반대", "다름", "차이", "경계"],
-    "메타인지": ["깨달음", "성찰", "되돌아봄", "인지", "생각"],
-    "비판적사고": ["갈등", "문제", "관습", "편견", "논리", "현실"],
-    "상상력발휘": ["우주", "상상", "꿈", "미래", "창의"],
-    "시대와맥락": ["과거", "역사", "시대", "문화", "맥락"],
-    "심층주제파고들기": ["본질", "핵심", "중심", "주제", "의미"],
-    "연결성찾기": ["관계", "연결", "관련", "비교", "유사"],
-    "윤리적고민": ["윤리", "선악", "선택", "가치", "판단"],
-    "인물심층분석": ["인물", "성격", "행동", "동기", "성장"],
-    "장르분석": ["판타지", "추리", "로맨스", "SF", "서사"],
-    "창의적재해석": ["재해석", "다시보기", "의외성", "반전", "창조"],
-    "핵심가치": ["자유", "사랑", "존중", "책임", "공감"],
-    "행동유도": ["실천", "행동", "도전", "참여", "변화"]
-}
+template_texts_clean = [q["template"].replace("(키워드)", "").strip() for q in template_data["questions"]]
 
-def load_model_and_tokenizer():
-    with open(CONFIG_PATH, encoding='utf-8') as f:
-        model_info = json.load(f)
-    model_name = model_info[0]['model_name'] if isinstance(model_info, list) else model_info['model_name']
-    model_path = os.path.join(MODELS_DIR, model_name)
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device).eval()
-    return tokenizer, model, device
+# 템플릿 임베딩
+def get_sbert_embedding(text):
+    inputs = sbert_tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    with torch.no_grad():
+        outputs = sbert_model(**inputs)
+    cls_emb = outputs.last_hidden_state[:, 0, :]
+    return F.normalize(cls_emb, p=2, dim=1).squeeze(0)
+
+template_embeddings = torch.stack([
+    get_sbert_embedding(text) for text in template_texts_clean
+]).to(device)
+
+# 기타 함수들
+okt = Okt()
 
 def summarize_kobart(text):
-    tokenizer, model, device = load_model_and_tokenizer()
-    input_ids = tokenizer.encode(text, return_tensors="pt", truncation=True, max_length=512).to(device)
-    output_ids = model.generate(input_ids, max_length=128, num_beams=4, early_stopping=True)
-    return tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
+    input_ids = kobart_tokenizer.encode(text, return_tensors="pt", truncation=True, max_length=512).to(device)
+    output_ids = kobart_model.generate(input_ids, max_length=128, num_beams=4, early_stopping=True)
+    return kobart_tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
 
 def adjust_postposition(keyword, template):
-    code = ord(keyword[-1])
-    has_final = (code - 0xAC00) % 28 != 0 if 0xAC00 <= code <= 0xD7A3 else False
+    def has_jongseong(char):
+        code = ord(char)
+        return (code - 0xAC00) % 28 != 0 if 0xAC00 <= code <= 0xD7A3 else False
+
+    has_final = has_jongseong(keyword[-1])
     replacements = {
         r"\(이\)가": "이" if has_final else "가",
         r"\(을\)를": "을" if has_final else "를",
         r"\(은\)는": "은" if has_final else "는",
         r"\(과\)와": "과" if has_final else "와",
-        r"\(이\)란": "이란" if has_final else "란"
+        r"\(이\)라고": "이라고" if has_final else "라고",
     }
+
     for pattern, repl in replacements.items():
         template = re.sub(pattern, repl, template)
     return template.replace("(키워드)", keyword).strip()
 
-def extract_keywords_okt(text, top_k=5):
-    raw_nouns = okt.nouns(text)
-    stopwords = {"것", "정말", "진짜", "그냥", "이런", "저런", "너무", "매우", "좀", "거의", "등", "수", "때"}
-    return [kw for kw in raw_nouns if kw not in stopwords and len(kw) > 1][:top_k]
+def clarify_subject(question, keyword):
+    abstract_keywords = {"감정", "내면", "의미", "생각", "존재", "성찰", "느낌"}
+    human_keywords = {"저자", "주인공", "인물", "사람"}
 
-def find_similar_templates_for_keyword(keyword):
-    for category, sub_keywords in category_keywords.items():
-        if keyword in sub_keywords:
-            return [q['template'] for q in template_data['questions'] if q['category'] == category][:5]
-    return []
+    replacement = None
+    if any(phrase in question for phrase in ["하고 싶어", "만들고 싶어", "느끼고 싶어", "생각하나요", "중요한가요"]):
+        if keyword in abstract_keywords:
+            replacement = f"저자의 {keyword}"
+        elif keyword in human_keywords:
+            replacement = f"{keyword} 본인은"
+    if replacement:
+        question = re.sub(rf"\b{re.escape(keyword)}\b", replacement, count=1, string=question)
+    if "무엇인가요?" in question and keyword in abstract_keywords:
+        question = question.replace("무엇인가요?", "어떤 의미인가요?")
+    return question
 
-def get_question_count():
-    if not os.path.exists(CONFIG_PATH) or not os.path.exists(METRICS_PATH):
-        return 2
-    try:
-        with open(CONFIG_PATH, encoding="utf-8") as f:
-            model_info = json.load(f)
-        current_model = model_info[0]['model_name'] if isinstance(model_info, list) else model_info['model_name']
-        with open(METRICS_PATH, encoding="utf-8") as f:
-            metrics = json.load(f)
-        for entry in metrics:
-            if entry['model_name'] == current_model and 'q_num' in entry:
-                return entry['q_num']
-    except:
-        pass
-    return 2
+def extract_keywords(text, top_k=5):
+    stopwords = {
+        "것", "정말", "진짜", "그냥", "이런", "저런", "너무", "매우", "좀", "거의",
+        "나", "너", "우리", "저", "그", "이", "위", "아래", "때", "중", "수", "등",
+        "그리고", "그래서", "하지만", "그러나", "그때", "요즘", "오늘", "내일"
+    }
+    nouns = okt.nouns(text)
+    filtered = [kw for kw in nouns if kw not in stopwords and len(kw) > 1]
+    return [kw for kw, _ in Counter(filtered).most_common(top_k)]
+
+def find_similar_templates_sbert(keyword):
+    keyword_emb = get_sbert_embedding(keyword)
+    sims = F.cosine_similarity(keyword_emb.unsqueeze(0), template_embeddings)
+    top_indices = torch.topk(sims, k=5).indices.tolist()
+    return [template_data["questions"][i]["template"] for i in top_indices]
 
 def generate_questions(summary, target_count=5):
-    keywords = extract_keywords_okt(summary, top_k=5)
+    keywords = extract_keywords(summary, top_k=5)
     questions = []
     used_templates = set()
     for kw in keywords:
-        templates = find_similar_templates_for_keyword(kw)
-        if not templates:
-            templates = ["(키워드)은 당신에게 어떤 의미인가요?"]
+        templates = find_similar_templates_sbert(kw)
+        random.shuffle(templates)
         for tpl in templates:
-            if tpl in used_templates:
+            if tpl in used_templates or "(키워드)" not in tpl:
                 continue
-            question = adjust_postposition(kw, tpl)
+            question = clarify_subject(adjust_postposition(kw, tpl), kw)
             if question not in questions:
                 questions.append(question)
                 used_templates.add(tpl)
             if len(questions) >= target_count:
-                return questions
-    while len(questions) < target_count:
-        questions.append("(자연스러운 질문 생성 실패)")
+                break
+        if len(questions) >= target_count:
+            break
     return questions
 
+def select_best_questions(summary, questions, top_k=2):
+    summary_emb = get_sbert_embedding(summary)
+    question_embs = [get_sbert_embedding(q) for q in questions]
+    sims = [F.cosine_similarity(summary_emb, q_emb, dim=0).item() for q_emb in question_embs]
+    top_indices = sorted(range(len(sims)), key=lambda i: sims[i], reverse=True)[:top_k]
+    return [questions[i] for i in top_indices]
+    
 @router.post("/predict_question")
-def predict(input_data: TextInput):
+def predict_question(input_data: TextInput):
     paragraph = input_data.paragraph.strip()
     if len(paragraph) < 30:
         raise HTTPException(status_code=422, detail="문장이 너무 짧습니다.")
     try:
         summary = summarize_kobart(paragraph)
-        q_num = get_question_count()
-        questions = generate_questions(summary, target_count=q_num)
+        raw_questions = generate_questions(summary, target_count=5)
+        best_questions = select_best_questions(summary, raw_questions, top_k=2)
 
         conn = get_connection()
         try:
@@ -143,10 +158,11 @@ def predict(input_data: TextInput):
 
         return JSONResponse(content={
             "summary": summary,
-            **{f"question{i+1}": q for i, q in enumerate(questions)}
+            **{f"question{i+1}": q for i, q in enumerate(best_questions)}
         })
 
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"질문 생성 중 오류 발생: {e}")
+        raise HTTPException(status_code=500, detail=f"질문 생성 중 오류 발생: {str(e)}")
+
 
