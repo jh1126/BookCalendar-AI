@@ -97,7 +97,7 @@ def continue_training_question_model(config: QuestionModelConfig):
         overwrite_output_dir=True,
         evaluation_strategy="epoch",
         save_strategy="epoch",
-        learning_rate=2e-5,                       
+        learning_rate=1e-5,                       
         per_device_train_batch_size=16,            
         per_device_eval_batch_size=16,              
         num_train_epochs=config.epoch,           
