@@ -69,29 +69,34 @@ def clean_keywords(keywords):
     }
     return [kw.strip() for kw in keywords if kw.strip() not in stopwords and len(kw.strip()) > 1]
 
-# ✅ 요약 함수 (출력 포함)
+# 요약 함수 (출력 포함)
 def summarize_kobart(text):
     tokenizer, model = load_model_and_tokenizer()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
     model.to(device)
+
     input_ids = tokenizer.encode(
         text,
         return_tensors="pt",
         truncation=True,
         max_length=512
     ).to(device)
+
     output_ids = model.generate(
         input_ids,
         max_length=128,
         num_beams=4,
         early_stopping=True
     )
+
     summary = tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-    # ✅ 요약 결과 출력
-    print(f"\n📘 요약 결과:\n{summary}\n")
+
+    print(f"\n 요약 결과:\n{summary}\n")
+
     return summary
+
 
 # 키워드 추출
 def extract_keywords_okt(text, top_k=5):
