@@ -47,17 +47,29 @@ def get_current_model_name():
     except:
         return None
 
+import shutil
+
 def continue_training_question_model(config: QuestionModelConfig):
     raw_data = load_data()
     dataset = Dataset.from_list(raw_data).train_test_split(test_size=0.1)
 
-    current_model_name = get_current_model_name()
-    if current_model_name is None:
+    base_model_name = get_current_model_name()
+    if base_model_name is None:
         raise RuntimeError("현재 사용 중인 question 모델을 찾을 수 없습니다.")
 
-    model_path = os.path.join(MODEL_DIR, current_model_name)
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
-    model = BartForConditionalGeneration.from_pretrained(model_path)
+    # 새로운 모델 이름과 경로 설정
+    new_model_name = config.newModelName
+    base_model_path = os.path.join(MODEL_DIR, base_model_name)
+    new_model_path = os.path.join(MODEL_DIR, new_model_name)
+
+    # 모델 디렉토리 복사
+    if os.path.exists(new_model_path):
+        raise RuntimeError(f"이미 존재하는 모델 이름입니다: {new_model_name}")
+    shutil.copytree(base_model_path, new_model_path)
+
+    # 모델/토크나이저 로드 (복사된 위치에서)
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(new_model_path)
+    model = BartForConditionalGeneration.from_pretrained(new_model_path)
 
     def preprocess(example):
         input_text = example["paragraph"]
@@ -81,7 +93,7 @@ def continue_training_question_model(config: QuestionModelConfig):
     collator = DataCollatorForSeq2Seq(tokenizer, model)
 
     training_args = TrainingArguments(
-        output_dir=model_path,
+        output_dir=new_model_path,
         overwrite_output_dir=True,
         evaluation_strategy="epoch",
         save_strategy="epoch",
@@ -111,8 +123,8 @@ def continue_training_question_model(config: QuestionModelConfig):
 
     trainer.train()
 
-    model.save_pretrained(model_path)
-    tokenizer.save_pretrained(model_path)
+    model.save_pretrained(new_model_path)
+    tokenizer.save_pretrained(new_model_path)
 
     # ===== BLEU 평가 및 저장 =====
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -143,25 +155,22 @@ def continue_training_question_model(config: QuestionModelConfig):
         bleu_score = round(sum(scores) / len(scores), 4)
 
         metrics = load_metrics()
-        updated = False
-        for entry in metrics:
-            if entry["model_name"] == current_model_name:
-                entry["BLEU Score"] = bleu_score
-                entry["q_num"] = config.batchSize
-                updated = True
-                break
-        if not updated:
-            metrics.append({
-                "model_name": current_model_name,
-                "BLEU Score": bleu_score,
-                "q_num": config.batchSize
-            })
+        metrics.append({
+            "model_name": new_model_name,
+            "BLEU Score": bleu_score,
+            "q_num": config.batchSize
+        })
 
         with open(METRICS_PATH, "w", encoding="utf-8") as f:
             json.dump(metrics, f, indent=4, ensure_ascii=False)
 
+        # 현재 모델 교체 (선택 사항)
+        with open(ACTIVE_MODEL_PATH, "w", encoding="utf-8") as f:
+            json.dump([{"model_name": new_model_name}], f, indent=2, ensure_ascii=False)
+
     except Exception as e:
         print(f"[BLEU 평가 실패] {e}")
+
 
 @router.post("/continue_train_question")
 def continue_train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
