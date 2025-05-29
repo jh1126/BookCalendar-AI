@@ -94,6 +94,8 @@ def preprocess_paragraph(text):
     """요약 입력용 문단 전처리: 줄바꿈 제거 + 공백 정리"""
     return ' '.join(text.strip().split())
 
+
+kobart_tokenizer, kobart_model = load_kobart_model_and_tokenizer()
 #요약 함수
 def summarize_kobart(text):
     input_ids = kobart_tokenizer.encode(
