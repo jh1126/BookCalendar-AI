@@ -9,6 +9,8 @@ import torch.nn.functional as F
 import re, random, json, torch, os
 from datetime import datetime
 from database import get_connection
+import traceback
+
 from fastapi.responses import JSONResponse
 
 
