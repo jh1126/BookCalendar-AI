@@ -24,8 +24,8 @@ SBERT_MODEL_NAME = "snunlp/KR-SBERT-V40K-klueNLI-augSTS"
 TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
 
 # 모델 불러오기
-kobart_tokenizer = AutoTokenizer.from_pretrained(KOBART_PATH)
-kobart_model = AutoModelForSeq2SeqLM.from_pretrained(KOBART_PATH)
+kobart_tokenizer = AutoTokenizer.from_pretrained(KOBART_PATH, local_files_only=True)
+kobart_model = AutoModelForSeq2SeqLM.from_pretrained(KOBART_PATH, local_files_only=True)
 kobart_model.eval()
 
 sbert_tokenizer = AutoTokenizer.from_pretrained(SBERT_MODEL_NAME)
