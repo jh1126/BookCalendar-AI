@@ -196,8 +196,9 @@ def extract_keywords_okt_with_filter(text, sbert_model=None, top_k=10, threshold
 
             scores = []
             for ref_list in category_keywords.values():
-                ref_embs = [get_sbert_embedding(r) for r in ref_list]
-                ref_tensor = torch.stack(ref_embs).to(kw_emb.device)  # ✅ 디바이스 일치시킴
+                ref_embs = [get_sbert_embedding(r).to(kw_emb.device) for r in ref_list]
+                ref_tensor = torch.stack(ref_embs)
+
 
                 sim = torch.matmul(kw_emb, ref_tensor.T).max().item()
                 scores.append(sim)
