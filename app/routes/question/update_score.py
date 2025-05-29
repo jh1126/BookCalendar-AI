@@ -68,7 +68,7 @@ def update_model_score(data: ScoreUpdateRequest):
         updated = False
         for m in model_data:
             if m["model_name"] == model_name:
-                m["BLEU Score"] = bleu_score
+                m["ROUGE Score"] = bleu_score
                 updated = True
                 break
 
@@ -83,11 +83,6 @@ def update_model_score(data: ScoreUpdateRequest):
 
     return {
         "message": f"모델 '{model_name}'의 ROUGE Score가 {bleu_score}로 갱신되었습니다.",
-        "ROUGE Score": bleu_score  # 이름은 그대로 두되 실제 값은 BLEU
+        "ROUGE Score": bleu_score  
     }
 
-
-    return {
-        "message": f"모델 '{model_name}'의 ROUGE Score가 {rouge_score}로 갱신되었습니다.",
-        "ROUGE Score": rouge_score
-    }
