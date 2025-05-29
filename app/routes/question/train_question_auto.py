@@ -3,6 +3,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from datetime import datetime
+from transformers import EarlyStoppingCallback
 
 from transformers import (
     BartForConditionalGeneration,
@@ -130,13 +131,15 @@ def train_question_model_auto(config: QuestionModelConfig):
     save_path = os.path.join(MODEL_DIR, model_name)
     os.makedirs(save_path, exist_ok=True)
 
+
+    batchsize = 8
     training_args = TrainingArguments(
         output_dir=save_path,
         evaluation_strategy="epoch",
         save_strategy="no",
         learning_rate=5e-5,
-        per_device_train_batch_size=config.batchSize,
-        per_device_eval_batch_size=config.batchSize,
+        per_device_train_batch_size=batchsize,
+        per_device_eval_batch_size=batchsize,
         num_train_epochs=config.epoch,
         weight_decay=0.01,
         save_total_limit=1,
@@ -152,6 +155,7 @@ def train_question_model_auto(config: QuestionModelConfig):
         eval_dataset=tokenized["test"],
         tokenizer=tokenizer,
         data_collator=collator,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
     )
 
     trainer.train()
