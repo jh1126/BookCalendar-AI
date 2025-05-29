@@ -24,9 +24,14 @@ SBERT_MODEL_NAME = "snunlp/KR-SBERT-V40K-klueNLI-augSTS"
 TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
 
 # 모델 불러오기
-kobart_tokenizer = AutoTokenizer.from_pretrained(KOBART_PATH, local_files_only=True)
-kobart_model = AutoModelForSeq2SeqLM.from_pretrained(KOBART_PATH, local_files_only=True)
-kobart_model.eval()
+def load_model_and_tokenizer():
+    model_path = "/home/t25101/v0.5/ai/BookCalendar-AI/models/kobart_summary_model_v6"
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device).eval()
+    return tokenizer, model, device
+
 
 sbert_tokenizer = AutoTokenizer.from_pretrained(SBERT_MODEL_NAME)
 sbert_model = AutoModel.from_pretrained(SBERT_MODEL_NAME)
@@ -55,10 +60,11 @@ template_embeddings = torch.stack([
 # 기타 함수들
 okt = Okt()
 
-def summarize_kobart(text):
-    input_ids = kobart_tokenizer.encode(text, return_tensors="pt", truncation=True, max_length=512).to(device)
-    output_ids = kobart_model.generate(input_ids, max_length=128, num_beams=4, early_stopping=True)
-    return kobart_tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
+def summarize_kobart(text, tokenizer, model, device):
+    input_ids = tokenizer.encode(text, return_tensors="pt", truncation=True, max_length=512).to(device)
+    output_ids = model.generate(input_ids, max_length=128, num_beams=4, early_stopping=True)
+    return tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
+
 
 def adjust_postposition(keyword, template):
     def has_jongseong(char):
@@ -139,11 +145,12 @@ def select_best_questions(summary, questions, top_k=2):
     
 @router.post("/predict_question")
 def predict_question(input_data: TextInput):
+    tokenizer, model, device = load_model_and_tokenizer()
     paragraph = input_data.paragraph.strip()
+    summary = summarize_kobart(paragraph, tokenizer, model, device)
     if len(paragraph) < 30:
         raise HTTPException(status_code=422, detail="문장이 너무 짧습니다.")
     try:
-        summary = summarize_kobart(paragraph)
         raw_questions = generate_questions(summary, target_count=5)
         best_questions = select_best_questions(summary, raw_questions, top_k=2)
 
