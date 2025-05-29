@@ -13,7 +13,6 @@ import re, random, json, torch, os
 from datetime import datetime
 from database import get_connection
 import traceback
-
 from fastapi.responses import JSONResponse
 
 
@@ -35,6 +34,8 @@ MODELS_DIR = os.path.join(PROJECT_ROOT, "models", "question")
 
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
     template_data = json.load(f)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 category_keywords = {
     "감정탐구": ["감정", "느낌", "마음", "상실", "기쁨", "분노"],
@@ -64,7 +65,7 @@ def load_kobart_model_and_tokenizer():
 
     # Tokenizer + Model 로딩
     tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
-    model = BartForConditionalGeneration.from_pretrained(model_path).to("cuda" if torch.cuda.is_available() else "cpu").eval()
+    model = BartForConditionalGeneration.from_pretrained(model_path).to(device).eval()
 
     return tokenizer, model
 
@@ -74,12 +75,23 @@ sbert_model = AutoModel.from_pretrained(model_name)
 sbert_model.to("cuda")
 sbert_model.eval()
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 def get_sbert_embedding(text):
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512).to("cuda")
+    inputs = tokenizer(
+        text,
+        return_tensors="pt",
+        truncation=True,
+        padding=True,
+        max_length=512
+    ).to(device)  # ✅ 하드코딩된 "cuda" → device 변수로 통일
+
     with torch.no_grad():
         outputs = sbert_model(**inputs)
+
     cls_emb = outputs.last_hidden_state[:, 0, :]  # shape: (1, hidden_dim)
-    return F.normalize(cls_emb, p=2, dim=1).squeeze(0)  # shape: (hidden_dim,), stays on GPU
+    return F.normalize(cls_emb, p=2, dim=1).squeeze(0).to(device)  # ✅ .to(device) 추가로 명시
+
 
 
 # 1. (키워드) 제거한 템플릿 문장 리스트
@@ -107,7 +119,7 @@ def summarize_kobart(text):
         return_tensors="pt",
         truncation=True,
         max_length=512
-    )
+    ).to(device)
 
     output_ids = kobart_model.generate(
         input_ids,
