@@ -92,14 +92,15 @@ def continue_training_question_model(config: QuestionModelConfig):
     tokenized = dataset.map(preprocess, batched=True)
     collator = DataCollatorForSeq2Seq(tokenizer, model)
 
+    batchsiz = 16
     training_args = TrainingArguments(
         output_dir=new_model_path,
         overwrite_output_dir=True,
         evaluation_strategy="epoch",
         save_strategy="epoch",
         learning_rate=5e-5,
-        per_device_train_batch_size=config.batchSize,
-        per_device_eval_batch_size=config.batchSize,
+        per_device_train_batch_size=batchsize,
+        per_device_eval_batch_size=batchsiz,
         num_train_epochs=config.epoch,
         weight_decay=0.01,
         save_total_limit=1,
