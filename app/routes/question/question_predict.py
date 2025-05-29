@@ -93,6 +93,22 @@ def find_similar_templates_for_keyword(keyword):
     random.shuffle(scored_templates)
     return [tpl for tpl, _ in scored_templates[:5]]
 
+def get_question_count():
+    if not os.path.exists(CONFIG_PATH) or not os.path.exists(METRICS_PATH):
+        return 2
+    try:
+        with open(CONFIG_PATH, encoding="utf-8") as f:
+            model_info = json.load(f)
+        current_model = model_info[0]['model_name'] if isinstance(model_info, list) else model_info['model_name']
+        with open(METRICS_PATH, encoding="utf-8") as f:
+            metrics = json.load(f)
+        for entry in metrics:
+            if entry['model_name'] == current_model and 'q_num' in entry:
+                return entry['q_num']
+    except:
+        pass
+    return 2
+
 def generate_questions(summary, target_count=5):
     keywords = extract_keywords_okt(summary, top_k=5)
     questions = []
@@ -123,7 +139,8 @@ def predict(input_data: TextInput):
         raise HTTPException(status_code=422, detail="문장이 너무 짧습니다.")
     try:
         summary = summarize_kobart(paragraph)
-        questions = generate_questions(summary, target_count=5)
+        q_num = get_question_count()
+        questions = generate_questions(summary, target_count=q_num)
 
         conn = get_connection()
         try:
