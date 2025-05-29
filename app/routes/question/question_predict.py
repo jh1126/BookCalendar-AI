@@ -72,7 +72,7 @@ sbert_model.to("cuda")
 sbert_model.eval()
 
 def get_sbert_embedding(text):
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True).to("cuda")
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512).to("cuda")
     with torch.no_grad():
         outputs = sbert_model(**inputs)
     cls_emb = outputs.last_hidden_state[:, 0, :]
