@@ -188,30 +188,35 @@ def extract_keywords_okt_with_filter(text, sbert_model=None, top_k=10, threshold
     ]
     
     freq_sorted = Counter(filtered_nouns).most_common()
+    
     if sbert_model:
-    result = []
-    for kw, _ in freq_sorted:
-        kw_emb = get_sbert_embedding(kw)  # kw_emb는 GPU
+        result = []
+        for kw, _ in freq_sorted:
+            kw_emb = get_sbert_embedding(kw)  # kw_emb는 GPU
 
-        scores = []
-        for ref_list in category_keywords.values():
-            ref_embs = [get_sbert_embedding(r) for r in ref_list]
-            ref_tensor = torch.stack(ref_embs).to(kw_emb.device)  # ✅ 디바이스 일치시킴
+            scores = []
+            for ref_list in category_keywords.values():
+                ref_embs = [get_sbert_embedding(r) for r in ref_list]
+                ref_tensor = torch.stack(ref_embs).to(kw_emb.device)  # ✅ 디바이스 일치시킴
 
-            sim = torch.matmul(kw_emb, ref_tensor.T).max().item()
-            scores.append(sim)
+                sim = torch.matmul(kw_emb, ref_tensor.T).max().item()
+                scores.append(sim)
 
-        if max(scores) >= threshold:
-            result.append((kw, max(scores)))
+            if max(scores) >= threshold:
+                result.append((kw, max(scores)))
 
+        # ✅ 루프 바깥으로 옮김
         result = sorted(result, key=lambda x: x[1], reverse=True)[:top_k]
         final_keywords = [kw for kw, _ in result]
+
     else:
         final_keywords = [kw for kw, _ in freq_sorted[:top_k]]
     
     if verbose:
         print("📌 필터링된 키워드:", final_keywords)
+    
     return final_keywords
+
 
 #질문 수 받기
 def get_question_count():
