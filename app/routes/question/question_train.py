@@ -78,23 +78,26 @@ def train_question_model(config: QuestionModelConfig):
     save_path = os.path.join(MODEL_DIR, config.newModelName)
     os.makedirs(save_path, exist_ok=True)
 
-    training_args = TrainingArguments(
-        output_dir=save_path,
-        evaluation_strategy="epoch",  # Fixed
-        save_strategy="epoch",
-        learning_rate=5e-5,
-        per_device_train_batch_size=config.batchSize,
-        per_device_eval_batch_size=config.batchSize,
-        num_train_epochs=config.epoch,
-        weight_decay=0.01,
-        save_total_limit=1,
-        eval_accumulation_steps=1,
-        fp16=False,
-        report_to="none",
-        load_best_model_at_end=True,
-        metric_for_best_model="eval_loss",
-        greater_is_better=False
-    )
+fixed_batch_size = 16
+
+training_args = TrainingArguments(
+    output_dir=save_path,
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    learning_rate=5e-5,
+    per_device_train_batch_size=fixed_batch_size,
+    per_device_eval_batch_size=fixed_batch_size,
+    num_train_epochs=config.epoch,
+    weight_decay=0.01,
+    save_total_limit=1,
+    eval_accumulation_steps=1,
+    fp16=torch.cuda.is_available(),
+    report_to="none",
+    load_best_model_at_end=True,
+    metric_for_best_model="eval_loss",
+    greater_is_better=False
+)
+
 
     trainer = Trainer(
         model=model,
