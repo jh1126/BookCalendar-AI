@@ -19,7 +19,7 @@ router = APIRouter()
 class QuestionModelConfig(BaseModel):
     newModelName: str
     epoch: int
-    batchSize: int
+    batchSize: int  # 고정 사용하므로 무시됨
 
 BASE_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', '..', '..'))
@@ -78,26 +78,25 @@ def train_question_model(config: QuestionModelConfig):
     save_path = os.path.join(MODEL_DIR, config.newModelName)
     os.makedirs(save_path, exist_ok=True)
 
-fixed_batch_size = 16
+    fixed_batch_size = 16  # 여기서 고정됨
 
-training_args = TrainingArguments(
-    output_dir=save_path,
-    evaluation_strategy="epoch",
-    save_strategy="epoch",
-    learning_rate=5e-5,
-    per_device_train_batch_size=fixed_batch_size,
-    per_device_eval_batch_size=fixed_batch_size,
-    num_train_epochs=config.epoch,
-    weight_decay=0.01,
-    save_total_limit=1,
-    eval_accumulation_steps=1,
-    fp16=torch.cuda.is_available(),
-    report_to="none",
-    load_best_model_at_end=True,
-    metric_for_best_model="eval_loss",
-    greater_is_better=False
-)
-
+    training_args = TrainingArguments(
+        output_dir=save_path,
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        learning_rate=5e-5,
+        per_device_train_batch_size=fixed_batch_size,
+        per_device_eval_batch_size=fixed_batch_size,
+        num_train_epochs=config.epoch,
+        weight_decay=0.01,
+        save_total_limit=1,
+        eval_accumulation_steps=1,
+        fp16=torch.cuda.is_available(),
+        report_to="none",
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False
+    )
 
     trainer = Trainer(
         model=model,
@@ -110,10 +109,8 @@ training_args = TrainingArguments(
     )
 
     trainer.train()
-
     model.save_pretrained(save_path)
     tokenizer.save_pretrained(save_path)
-
     save_active_model(config.newModelName)
 
     # ===== BLEU 평가 및 저장 =====
@@ -149,14 +146,14 @@ training_args = TrainingArguments(
         for entry in metrics:
             if entry["model_name"] == config.newModelName:
                 entry["BLEU Score"] = bleu_score
-                entry["q_num"] = config.batchSize
+                entry["q_num"] = fixed_batch_size  # 고정값 사용
                 updated = True
                 break
         if not updated:
             metrics.append({
                 "model_name": config.newModelName,
                 "BLEU Score": bleu_score,
-                "q_num": config.batchSize
+                "q_num": fixed_batch_size
             })
 
         with open(METRICS_PATH, "w", encoding="utf-8") as f:
@@ -169,6 +166,6 @@ training_args = TrainingArguments(
 def train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(train_question_model, config)
+        return JSONResponse(content={"detail": f"{config.newModelName} 훈련이 백그라운드에서 시작되었습니다."})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
