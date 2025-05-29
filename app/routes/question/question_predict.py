@@ -19,7 +19,7 @@ class TextInput(BaseModel):
 # 경로 설정
 CURRENT_DIR = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", "..", ".."))
-KOBART_PATH = os.path.join(PROJECT_ROOT, "models", "kobart_summary_model_v6")
+KOBART_PATH = os.path.join(PROJECT_ROOT, "models", "question", "kobart_summary_model_v6")
 SBERT_MODEL_NAME = "snunlp/KR-SBERT-V40K-klueNLI-augSTS"
 TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "data", "question", "processed", "question_data.json")
 
