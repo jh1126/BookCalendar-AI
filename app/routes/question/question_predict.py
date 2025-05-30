@@ -292,7 +292,7 @@ def find_similar_templates_sbert(keyword, template_data, template_embeddings, sb
     return [template_data["questions"][i]["template"] for i in top_indices]
 
 #어색한 질문 수
-def is_template_suitable(keyword, question):
+def is_template_suitable(keyword, question, template):
     # 예: 갈등을 읽는다 → 어색
     if f"{keyword}을 읽" in question or f"{keyword}를 읽" in question:
         return False
@@ -349,7 +349,7 @@ def generate_and_refine_questions(summary, template_data, template_embeddings, s
             question = clarify_subject(question_raw, kw)
             if question.count(kw) != 1:
                 continue
-            if not is_template_suitable(kw, question):
+            if not is_template_suitable(kw, question, template):
                 continue
             if not force_use_fallback and question in questions:
                 continue
