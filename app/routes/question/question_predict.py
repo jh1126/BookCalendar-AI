@@ -15,10 +15,9 @@ from database import get_connection
 import traceback
 from fastapi.responses import JSONResponse
 
-
-
 router = APIRouter()
 
+#독후감 input 데이터
 class TextInput(BaseModel):
     paragraph: str
 
@@ -32,11 +31,19 @@ CONFIG_PATH = os.path.join(PROJECT_ROOT, "app", "models", "question", "question_
 METRICS_PATH = os.path.join(PROJECT_ROOT, "data", "question", "question_model_metrics.json")
 MODELS_DIR = os.path.join(PROJECT_ROOT, "models", "question")
 
+
+
+#질문 템플릿 로딩
 with open(TEMPLATE_PATH, encoding="utf-8") as f:
     template_data = json.load(f)
 
+
+#디바이스 설정 - cuda를 하드코딩 x, device 변수에 통일 처리
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
+
+#카테고리-키워드 사전 ( 질문 생성 시 키워드 의미적 분류 기준 '상실'-> 감정탐구 )
 category_keywords = {
     "감정탐구": ["감정", "느낌", "마음", "상실", "기쁨", "분노"],
     "관점전환": ["시선", "반대", "다름", "차이", "경계"],
@@ -54,6 +61,9 @@ category_keywords = {
     "행동유도": ["실천", "행동", "도전", "참여", "변화"]
 }
 
+
+
+#KoBART 모델 로딩
 def load_kobart_model_and_tokenizer():
     # 현재 사용 중인 모델 이름 가져오기
     with open(CONFIG_PATH, encoding='utf-8') as f:
@@ -63,20 +73,25 @@ def load_kobart_model_and_tokenizer():
     # 모델 경로 구성
     model_path = os.path.join(MODELS_DIR, model_name)
 
-    # Tokenizer + Model 로딩
+    # run.json 모델의 Tokenizer, Model 로드(.eval()을 통해 추론 모드)
+    #Fastapi 재시작 없이 모델 교체 가능
     tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
     model = BartForConditionalGeneration.from_pretrained(model_path).to(device).eval()
 
     return tokenizer, model
 
+
+#SBERT 모델 로딩 및 설정 - 질문 템플릿 유사도 비교에 이용
+#템플릿과 키워드 간 문장 임베딩 기반 유사도 측정 지원
 model_name = "snunlp/KR-SBERT-V40K-klueNLI-augSTS"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 sbert_model = AutoModel.from_pretrained(model_name)
 sbert_model.to("cuda")
 sbert_model.eval()
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+#SBERT 임베딩 추출 함수
+#TEXT를 토크나이징 -> sbert에 입력 -> 토큰 백터 추출
 def get_sbert_embedding(text):
     inputs = tokenizer(
         text,
@@ -89,6 +104,7 @@ def get_sbert_embedding(text):
     with torch.no_grad():
         outputs = sbert_model(**inputs)
 
+    #normalize를 적용해 코사인 유사도에 적합한 단위 벡터로 변환
     cls_emb = outputs.last_hidden_state[:, 0, :]  # shape: (1, hidden_dim)
     return F.normalize(cls_emb, p=2, dim=1).squeeze(0).to(device)  # ✅ .to(device) 추가로 명시
 
@@ -101,18 +117,18 @@ template_texts_clean = [
 ]
 
 # 2. SBERT 임베딩 추출 후 스택 (GPU로 이동)
+#template_embaddings에 저장 돼 한 번만 임베딩하고, 키워드 임베딩, 코사인 유사도만 계산
 template_embeddings = torch.stack([
     get_sbert_embedding(text) for text in template_texts_clean
 ]).to("cuda" if torch.cuda.is_available() else "cpu")
 
-#요약 전처
+#요약 전리 (줄바꿈 제거, 공백 정리)
 def preprocess_paragraph(text):
-    """요약 입력용 문단 전처리: 줄바꿈 제거 + 공백 정리"""
     return ' '.join(text.strip().split())
 
 
-kobart_tokenizer, kobart_model = load_kobart_model_and_tokenizer()
 #요약 함수
+kobart_tokenizer, kobart_model = load_kobart_model_and_tokenizer()
 def summarize_kobart(text):
     input_ids = kobart_tokenizer.encode(
         text,
@@ -123,19 +139,21 @@ def summarize_kobart(text):
 
     output_ids = kobart_model.generate(
         input_ids,
-        max_length=128,
-        num_beams=4,
+        max_length=100,
+        num_beams=4, #다양한 후보를 봄
         early_stopping=True
     )
-
+    #디코딩 : 숫자 ID를 다시 한글 문장으로 바꿈
     return kobart_tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
 
-#조사 보정 함
+#조사 보정 함수
 def adjust_postposition(keyword, template):
+    #keyword 마지막 글자 받침 유무 판별
     def has_jongseong(char):
         code = ord(char)
         return (code - 0xAC00) % 28 != 0 if 0xAC00 <= code <= 0xD7A3 else False
 
+    #판별한 내용을 바탕으로 템플릿 내 조사 자동 조정
     has_final = has_jongseong(keyword[-1])
     replacements = {
         r"\(이\)가": "이" if has_final else "가",
@@ -145,9 +163,13 @@ def adjust_postposition(keyword, template):
         r"\(이\)라고": "이라고" if has_final else "라고",
     }
 
+    #키워드를 실제 키워드로 다체 후 반환
     for pattern, repl in replacements.items():
         template = re.sub(pattern, repl, template)
     return template.replace("(키워드)", keyword).strip()
+
+
+
 
 # 주어 보정 함수
 def clarify_subject(question, keyword):
@@ -156,6 +178,7 @@ def clarify_subject(question, keyword):
 
     replacement = None
 
+    #문장 내 특정 문구가 있을 때 보완
     if any(phrase in question for phrase in ["하고 싶어", "만들고 싶어", "느끼고 싶어", "생각하나요", "중요한가요"]):
         if keyword in abstract_keywords:
             replacement = f"저자의 {keyword}"
@@ -173,7 +196,7 @@ def clarify_subject(question, keyword):
     return question
 
 
-# 5-2. 불용어 제거
+# 불필요한 키워드 제거
 def clean_keywords(keywords):
     stopwords = {
         "것", "정말", "진짜", "그냥", "이런", "저런", "너무", "매우", "좀", "거의",
@@ -182,7 +205,11 @@ def clean_keywords(keywords):
     }
     return [kw.strip() for kw in keywords if kw.strip() not in stopwords and len(kw.strip()) > 1]
 
+
+
+#핵심 키워드 추출
 def extract_keywords_okt_with_filter(text, sbert_model=None, top_k=10, threshold=0.35, verbose=True):
+    #명사 추출
     raw_nouns = okt.nouns(text)
     stopwords = {
         "것", "정말", "진짜", "그냥", "이런", "저런", "너무", "매우", "좀", "거의", "등", "수", "때",
@@ -196,37 +223,43 @@ def extract_keywords_okt_with_filter(text, sbert_model=None, top_k=10, threshold
     
     filtered_nouns = [
         kw for kw in raw_nouns
+        #불용어, 추상 키워드 제거
         if kw not in stopwords and kw not in abstract_keywords and len(kw.strip()) > 1
     ]
     
     freq_sorted = Counter(filtered_nouns).most_common()
-    
+
+    #키워드 벡터 - 카테고리 벡터 간 최대 유사도 계산
+    #특정 기준(threshold)이상이면 키워드 사용
     if sbert_model:
         result = []
+        #키워드 별 임베딩 생성
         for kw, _ in freq_sorted:
             kw_emb = get_sbert_embedding(kw)  # kw_emb는 GPU
 
+            #카테고리 키워드 유사도 측정
             scores = []
             for ref_list in category_keywords.values():
                 ref_embs = [get_sbert_embedding(r).to(kw_emb.device) for r in ref_list]
                 ref_tensor = torch.stack(ref_embs)
 
-
+                #벡터간 유사도 계산
                 sim = torch.matmul(kw_emb, ref_tensor.T).max().item()
                 scores.append(sim)
 
-            if max(scores) >= threshold:
+            #임계값 이상 키워드만 선택
+            if max(scores) >= threshold:#0.35 이상이 되도록 설정
                 result.append((kw, max(scores)))
 
-        # ✅ 루프 바깥으로 옮김
+        #상위 top_k개 선택 -> 의미 있는 키워들만 존재
         result = sorted(result, key=lambda x: x[1], reverse=True)[:top_k]
         final_keywords = [kw for kw, _ in result]
 
     else:
         final_keywords = [kw for kw, _ in freq_sorted[:top_k]]
-    
+    #키워드 확인
     if verbose:
-        print("📌 필터링된 키워드:", final_keywords)
+        print("필터링된 키워드:", final_keywords)
     
     return final_keywords
 
@@ -248,11 +281,14 @@ def get_question_count():
         pass
     return 2
 
-#비슷한 질문 템플릿 찾기 -sbert
+
+#키워드와 의미적으로 비슷한 템플릿 5개 찾기
 def find_similar_templates_sbert(keyword, template_data, template_embeddings, sbert_model):
     keyword_emb = get_sbert_embedding(keyword)
+    #키워드 - 템플릿 임베딩들과 코사인 유사도 계산
     sims = torch.nn.functional.cosine_similarity(keyword_emb.unsqueeze(0), template_embeddings)
     top_indices = torch.topk(sims, k=5).indices.tolist()
+    #상위 5개 가져오기
     return [template_data["questions"][i]["template"] for i in top_indices]
 
 #어색한 질문 수
@@ -260,15 +296,21 @@ def is_template_suitable(keyword, question):
     # 예: 갈등을 읽는다 → 어색
     if f"{keyword}을 읽" in question or f"{keyword}를 읽" in question:
         return False
-    if question.count(keyword) > 1 and keyword in {"갈등", "감정", "기회"}:
+    #특정 키워드 두 번 반복 어색
+    if question.count(keyword) > 1:
+        return False
+    #이미 템플릿에 키워드가 들어있는 경우
+    template_base = re.sub(r"\(키워드\)", "", template)
+    if keyword in template_base:
         return False
     return True
 
 
-#질문 생성 함수
+#질문 생성 함수(최종 함수)
 def generate_and_refine_questions(summary, template_data, template_embeddings, sbert_model, target_count=None, verbose=True):
     if target_count is None:
         target_count = get_question_count()
+    #Okt + SBERT 기반 키워드 5개
     keywords = extract_keywords_okt_with_filter(summary, top_k=5, verbose=verbose)
     questions = []
     used_templates = set()
