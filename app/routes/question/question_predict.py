@@ -75,7 +75,7 @@ def load_kobart_model_and_tokenizer():
 
     # run.json 모델의 Tokenizer, Model 로드(.eval()을 통해 추론 모드)
     #Fastapi 재시작 없이 모델 교체 가능
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(model_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
     model = BartForConditionalGeneration.from_pretrained(model_path).to(device).eval()
 
     return tokenizer, model
