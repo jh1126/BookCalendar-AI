@@ -139,7 +139,7 @@ def summarize_kobart(text):
 
     output_ids = kobart_model.generate(
         input_ids,
-        max_length=256,
+        max_length=128,
         num_beams=4, #다양한 후보를 봄
         early_stopping=True
     )
