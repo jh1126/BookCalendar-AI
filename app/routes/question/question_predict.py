@@ -255,7 +255,7 @@ def clean_keywords(keywords):
 
 
 #핵심 키워드 추출
-def extract_keywords_okt_with_filter(text, sbert_model=None, top_k=10, threshold=0.35, verbose=True):
+def extract_keywords_okt_with_filter(text, sbert_model=None, top_k=3, threshold=0.35, verbose=True):
     #명사 추출
     raw_nouns = okt.nouns(text)
     stopwords = {
