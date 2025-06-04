@@ -411,7 +411,7 @@ def generate_and_refine_questions(summary, template_data, template_embeddings, s
         "마당": 2
     }
 
-    for kw in Keywords:
+    for kw in keywords:
         if kw in priority_template_map:
             tpl_id = priority_template_map[kw]
             tpl_obj = next((q for q in template_data["questions"] if q["id"] == tpl_id), None)
