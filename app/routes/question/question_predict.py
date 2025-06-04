@@ -261,7 +261,7 @@ def extract_keywords_okt_with_filter(text, sbert_model=None, top_k=3, threshold=
     stopwords = {
         "것", "정말", "진짜", "그냥", "이런", "저런", "너무", "매우", "좀", "거의", "등", "수", "때",
         "나", "너", "우리", "저", "그", "이", "위", "아래", "중", "그리고", "그래서", "하지만", "그러나",
-        "요즘", "오늘", "내일", "무엇"
+        "요즘", "오늘", "내일", "무엇", "낯선"
     }
     abstract_keywords = {
         "사이", "통해", "과정", "모습", "생각", "이야기", "상황", "사실", "시간", "장면",
@@ -358,7 +358,7 @@ def generate_and_refine_questions(summary, template_data, template_embeddings, s
     if target_count is None:
         target_count = get_question_count()
     #Okt + SBERT 기반 키워드 5개
-    keywords = extract_keywords_okt_with_filter(summary, top_k=5, verbose=verbose)
+    keywords = extract_keywords_okt_with_filter(summary, top_k=3, verbose=verbose)
     questions = []
     used_templates = set()
     keyword_usage = defaultdict(int)
