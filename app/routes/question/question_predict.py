@@ -434,22 +434,6 @@ def generate_and_refine_question(summary, template_data, template_embeddings, sb
             keyword_usage[kw] += 1
             break
 
-    priority_template_map = {
-        "닭장": 0,  # 템플릿 ID
-        "잎싹": 1,
-        "마당": 2
-    }
-
-    for kw in keywords:
-        if kw in priority_template_map:
-            tpl_id = priority_template_map[kw]
-            tpl_obj = next((q for q in template_data["questions"] if q["id"] == tpl_id), None)
-            if tpl_obj:
-                question = adjust_postposition(kw, tpl_obj["template"])
-                question = clarify_subject(question, kw)
-                if question not in questions:
-                    questions.append(question)
-                    keyword_usage[kw] += 1
 
     while len(questions) < target_count:
         available_fallback_kws = [kw for kw in keywords if keyword_usage[kw] < MAX_USE_PER_KEYWORD]
