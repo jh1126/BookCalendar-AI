@@ -300,7 +300,7 @@ def extract_keywords_okt_with_filter(text, sbert_model=None, top_k=3, threshold=
 
         #상위 top_k개 선택 -> 의미 있는 키워들만 존재
         result = sorted(result, key=lambda x: x[1], reverse=True)[:top_k]
-        final_keywords = [kw for kw, _ in result]
+        final_keywords = [kw for kw, _ in result[:top_k]]
 
     else:
         final_keywords = [kw for kw, _ in freq_sorted[:top_k]]
