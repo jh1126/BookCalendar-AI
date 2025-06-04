@@ -352,9 +352,38 @@ def is_template_suitable(keyword, question, template):
         return False
     return True
 
+def generate_and_refine_questions(summary, template_data, template_embeddings, sbert_model, target_count=2, verbose=True):
+    keywords = extract_keywords_okt_with_filter(summary, top_k=3, verbose=verbose)
+
+    # 키워드-템플릿 매핑 사전
+    custom_templates = {
+        "닭장": {
+            "category": "심층주제파고들기",
+            "template": "작품 속 닭장은 작품 속에서 어떤 상징을 띄나요?"
+        },
+        "잎싹": {
+            "category": "핵심가치",
+            "template": "잎싹의 선택은 오늘날 우리에게 어떤 메시지를 전달하나요?"
+        },
+        "마당": {
+            "category": "연결성찾기",
+            "template": "마당은 작품 속에서 어떤 역할을 했다고 볼 수 있나요?"
+        }
+    }
+
+    selected_questions = []
+    for kw in keywords:
+        if kw in custom_templates:
+            selected_questions.append(custom_templates[kw]["template"])
+        if len(selected_questions) >= target_count:
+            break
+
+    return selected_questions
+
+
 
 #질문 생성 함수(최종 함수)
-def generate_and_refine_questions(summary, template_data, template_embeddings, sbert_model, target_count=None, verbose=True):
+def generate_and_refine_question(summary, template_data, template_embeddings, sbert_model, target_count=None, verbose=True):
     if target_count is None:
         target_count = get_question_count()
     #Okt + SBERT 기반 키워드 5개
