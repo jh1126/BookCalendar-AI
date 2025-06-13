@@ -366,23 +366,6 @@ def generate_and_refine_questions(summary, template_data, template_embeddings, s
     attempt = 0
     MAX_USE_PER_KEYWORD = 1
 
-
-    # 👇 2. 커스텀 키워드 템플릿 정의
-    custom_templates = {
-        "닭장": "작품 속 닭장은 작품 속에서 어떤 상징을 띄나요?",
-        "잎싹": "잎싹의 선택은 오늘날 우리에게 어떤 메시지를 전달하나요?",
-        "마당": "마당은 작품 속에서 어떤 역할을 했다고 볼 수 있나요?"
-    }
-
-    # 👇 3. 커스텀 키워드 우선 적용
-    filtered_keywords = []
-    for kw in keywords:
-        if kw in custom_templates and len(questions) < target_count:
-            questions.append(custom_templates[kw])
-            keyword_usage[kw] += 1
-        else:
-            filtered_keywords.append(kw)
-
     weights = [0.4, 0.3, 0.1, 0.1, 0.1]
     weighted_keywords = list(zip(keywords, weights))
     random.shuffle(weighted_keywords)
