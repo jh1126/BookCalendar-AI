@@ -1,4 +1,4 @@
-#자동화 라우터, 현재는 train 라우터 그대로 옮겨옴. 후에 데이터 파트만 변곁하면 
+#자동화 라우터 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
