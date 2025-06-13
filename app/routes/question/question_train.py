@@ -2,6 +2,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from transformers import EarlyStoppingCallback
+from rouge_score import rouge_scorer
 
 from transformers import (
     BartForConditionalGeneration,
@@ -133,26 +134,28 @@ def train_question_model(config: QuestionModelConfig):
             decoded = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
             predictions.append(decoded)
 
-        smoothie = SmoothingFunction().method4
-        scores = [
-            sentence_bleu([ref.split()], pred.split(), smoothing_function=smoothie)
-            for ref, pred in zip(references, predictions)
-        ]
+        # ROUGE-L 단독 평가
+        scorer = rouge_scorer.RougeScorer(['rougeL'], use_stemmer=True)
+        rougeL_scores = []
 
-        bleu_score = round(sum(scores) / len(scores), 4)
+        for ref, pred in zip(references, predictions):
+            score = scorer.score(ref, pred)
+            rougeL_scores.append(score['rougeL'].fmeasure)
+
+        rougeL_avg = round(sum(rougeL_scores) / len(rougeL_scores), 4)
 
         metrics = load_metrics()
         updated = False
         for entry in metrics:
             if entry["model_name"] == config.newModelName:
-                entry["BLEU Score"] = bleu_score
-                entry["q_num"] = fixed_batch_size  # 고정값 사용
+                entry["ROUGE Score"] = rougeL_avg
+                entry["q_num"] = fixed_batch_size
                 updated = True
                 break
         if not updated:
             metrics.append({
                 "model_name": config.newModelName,
-                "BLEU Score": bleu_score,
+                "ROUGE-L": rougeL_avg,
                 "q_num": fixed_batch_size
             })
 
@@ -160,7 +163,7 @@ def train_question_model(config: QuestionModelConfig):
             json.dump(metrics, f, indent=4, ensure_ascii=False)
 
     except Exception as e:
-        print(f"[BLEU 평가 실패] {e}")
+        print(f"[ROUGE 평가 실패] {e}")
 
 @router.post("/train_question")
 def train_question_api(config: QuestionModelConfig, background_tasks: BackgroundTasks):
